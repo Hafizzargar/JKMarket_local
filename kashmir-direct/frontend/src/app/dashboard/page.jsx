@@ -232,7 +232,10 @@ function DashboardContent() {
           {/* 🚪 LOGOUT ZONE */}
           <div className="p-5 border-t border-white/5">
              <button 
-                onClick={async () => { await signOut(); router.push('/login'); }} 
+                onClick={async () => { 
+                  await signOut(); 
+                  window.location.href = '/'; 
+                }} 
                 className={`flex items-center gap-4 rounded-2xl transition-all bg-rose-500/5 border border-rose-500/10 text-rose-500/40 hover:text-rose-400 hover:bg-rose-500/10 ${isSidebarOpen ? 'w-full px-5 py-4' : 'w-14 h-14 mx-auto justify-center'}`}
                 title="Sign Out"
              >

@@ -94,7 +94,11 @@ export const AuthProvider = ({ children }) => {
   const value = {
     signUp: (data) => supabase.auth.signUp(data),
     signIn: (data) => supabase.auth.signInWithPassword(data),
-    signOut: () => supabase.auth.signOut(),
+    signOut: async () => {
+      await supabase.auth.signOut();
+      setUser(null);
+      setProfile(null);
+    },
     user,
     profile,
     // Grant admin access if they have the role OR if they are the Super Admin email

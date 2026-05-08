@@ -15,9 +15,12 @@ const playfair = Playfair_Display({
 });
 
 export const metadata = {
-  title: 'Kashmir Direct | Shop Management Software & Inventory System',
+  title: 'Kashmir Direct | Shop Management & Inventory',
   description: 'The elite artisan marketplace and small business inventory system for local stores. Featuring labor management dashboards, delivery management for India, and role-based admin security.',
   keywords: 'shop management software for local stores, labour management dashboard, small business inventory system, delivery management app india, role based admin system, kashmir direct, artisan marketplace',
+  icons: {
+    icon: '/icon.svg',
+  },
   openGraph: {
     title: 'Kashmir Direct - Elite Shop Management & Logistics',
     description: 'Transform your local store with our premium inventory and delivery management system.',
