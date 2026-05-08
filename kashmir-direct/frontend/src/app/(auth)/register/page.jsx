@@ -1,0 +1,284 @@
+'use client';
+
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../../../context/AuthContext';
+import { useRouter } from 'next/navigation';
+import Button from '../../../components/ui/Button';
+import Input from '../../../components/ui/Input';
+import Link from 'next/link';
+import { 
+  User, 
+  Store, 
+  ArrowRight, 
+  ArrowLeft, 
+  CheckCircle2, 
+  ShieldCheck,
+  Mail,
+  Lock,
+  Phone,
+  Briefcase
+} from 'lucide-react';
+import toast from 'react-hot-toast';
+import Logo from '../../../components/ui/Logo';
+import { supabase } from '../../../lib/supabase';
+
+export default function Register() {
+  const [step, setStep] = useState(1);
+  const [role, setRole] = useState('customer');
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    password: '',
+    phoneNumber: '',
+    businessName: '',
+    gstNumber: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { signUp, SUPER_ADMIN_EMAIL } = useAuth();
+  const router = useRouter();
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleNext = () => {
+    if (step === 1 && (!formData.fullName || !formData.phoneNumber)) {
+      toast.error('Identity details required');
+      return;
+    }
+    setStep(step + 1);
+  };
+
+  const handleRegister = async (e) => {
+    if (e) e.preventDefault();
+    setIsSubmitting(true);
+    
+    try {
+      const { data: authData, error: authError } = await signUp({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (authError) throw authError;
+
+      if (authData?.user) {
+        // 1. Create Base Profile
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert([{
+            id: authData.user.id,
+            full_name: formData.fullName,
+            email: formData.email,
+            role: formData.email === SUPER_ADMIN_EMAIL ? 'admin' : role,
+            verification_status: role === 'seller' ? 'pending' : 'verified'
+          }]);
+        
+        if (profileError) throw profileError;
+
+        // 2. Create Seller Entry if role is seller
+        if (role === 'seller') {
+          const { error: sellerError } = await supabase
+            .from('sellers')
+            .insert([{
+              user_id: authData.user.id,
+              shop_name: formData.businessName,
+              is_verified: false
+            }]);
+          
+          if (sellerError) throw sellerError;
+        }
+      }
+
+      setStep(4); // Success step
+      toast.success('Registration complete. Welcome to the valley.');
+    } catch (err) {
+      console.error('REGISTRATION FAILURE:', err);
+      toast.error(err.message || 'Registration failed. Please check your credentials.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const stepVariants = {
+    hidden: { opacity: 0, x: 20 },
+    visible: { opacity: 1, x: 0 },
+    exit: { opacity: 0, x: -20 }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-6 sm:p-10 lg:p-12 relative overflow-y-auto">
+      <div className="bg-organic-mesh fixed inset-0" />
+      <div className="noise-overlay fixed inset-0" />
+
+      <div className="w-full max-w-xl bg-white/80 backdrop-blur-xl rounded-[3.5rem] shadow-[0_40px_100px_-20px_rgba(27,67,50,0.08)] border border-[#1B4332]/10 overflow-hidden flex flex-col relative z-10 my-12">
+        
+        {/* 🏔️ PROGRESS HEADER */}
+        <div className="p-8 sm:p-10 pb-0 flex justify-between items-center">
+           <div className="flex gap-2">
+              {[1, 2, 3].map((s) => (
+                <div key={s} className={`h-1.5 rounded-full transition-all duration-700 ${step >= s ? 'w-10 bg-[#1B4332]' : 'w-4 bg-[#1B4332]/5'}`} />
+              ))}
+           </div>
+           <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[#1B4332]/20">Phase {step}</span>
+        </div>
+
+        <div className="p-8 sm:p-12 flex-grow flex flex-col">
+          <AnimatePresence mode="wait">
+            {step === 1 && (
+              <motion.div key="step1" variants={stepVariants} initial="hidden" animate="visible" exit="exit" className="space-y-8">
+                <div className="text-center sm:text-left">
+                   <Link href="/" className="inline-block mb-8 hover:opacity-80 transition-opacity">
+                      <Logo className="h-10 mx-auto sm:mx-0" />
+                   </Link>
+                   <h1 className="text-3xl font-black tracking-tighter text-[#1B4332]">Join the Community</h1>
+                   <p className="text-xs text-[#1B4332]/40 mt-1">Select your path in the valley.</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  {[
+                    { id: 'customer', label: 'Buyer', icon: User },
+                    { id: 'seller', label: 'Shopkeeper', icon: Store }
+                  ].map((r) => (
+                    <button
+                      key={r.id}
+                      onClick={() => setRole(r.id)}
+                      className={`p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 group relative overflow-hidden ${
+                        role === r.id 
+                          ? 'bg-[#1B4332] border-[#1B4332] text-white shadow-lg' 
+                          : 'bg-white/50 backdrop-blur-md border-[#1B4332]/5 text-[#1B4332]/40 hover:border-[#1B4332]/10 hover:bg-white'
+                      }`}
+                    >
+                      {role === r.id && <motion.div layoutId="roleBg" className="absolute inset-0 bg-gradient-to-br from-[#1B4332] to-[#0D2119] z-0" />}
+                      <div className="relative z-10 flex flex-col items-center gap-2">
+                        <r.icon size={18} className={role === r.id ? 'text-white' : 'group-hover:text-[#1B4332]'} />
+                        <span className="text-[9px] font-black uppercase tracking-[0.2em]">{r.label}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                   <Input 
+                      label="Full Name"
+                      name="fullName" 
+                      value={formData.fullName} 
+                      onChange={handleInputChange}
+                      placeholder="John Doe"
+                   />
+                   <Input 
+                      label="Phone"
+                      name="phoneNumber" 
+                      value={formData.phoneNumber} 
+                      onChange={handleInputChange}
+                      placeholder="+91 98765..."
+                   />
+                </div>
+
+                <Button onClick={handleNext} className="w-full h-12 rounded-xl group bg-gradient-to-r from-[#1B4332] to-[#2D5A47]">
+                   Continue <ArrowRight size={14} className="ml-2 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </motion.div>
+            )}
+
+            {step === 2 && (
+              <motion.div key="step2" variants={stepVariants} initial="hidden" animate="visible" exit="exit" className="space-y-6">
+                <div className="text-center sm:text-left">
+                   <h1 className="text-2xl font-black tracking-tighter text-[#1B4332]">Security Setup</h1>
+                   <p className="text-[11px] text-[#1B4332]/40 mt-1">Establish your administrative credentials.</p>
+                </div>
+
+                <div className="space-y-4">
+                   <Input 
+                      label="Email Address"
+                      name="email" 
+                      type="email"
+                      value={formData.email} 
+                      onChange={handleInputChange}
+                      placeholder="artisan@valley.com"
+                   />
+                   <Input 
+                      label="Secure Password"
+                      name="password" 
+                      type="password"
+                      value={formData.password} 
+                      onChange={handleInputChange}
+                      placeholder="••••••••"
+                   />
+                </div>
+
+                <div className="flex gap-3">
+                   <button onClick={() => setStep(1)} className="p-3 rounded-xl border border-[#1B4332]/5 text-[#1B4332]/40 hover:text-[#1B4332] transition-colors">
+                      <ArrowLeft size={18} />
+                   </button>
+                   <Button onClick={role === 'seller' ? handleNext : handleRegister} className="flex-grow h-12 rounded-xl bg-gradient-to-r from-[#1B4332] to-[#2D5A47]">
+                      {role === 'seller' ? 'Final Details' : 'Complete Setup'}
+                   </Button>
+                </div>
+              </motion.div>
+            )}
+
+            {step === 3 && (
+              <motion.div key="step3" variants={stepVariants} initial="hidden" animate="visible" exit="exit" className="space-y-6">
+                <div className="text-center sm:text-left">
+                   <h1 className="text-2xl font-black tracking-tighter text-[#1B4332]">Business Vault</h1>
+                   <p className="text-[11px] text-[#1B4332]/40 mt-1">Complete your shopkeeper profile for verification.</p>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4">
+                   <Input 
+                      label="Workshop Name"
+                      name="businessName" 
+                      value={formData.businessName} 
+                      onChange={handleInputChange}
+                      placeholder="e.g. Kashmir Heritage Silks"
+                   />
+                   <Input 
+                      label="GST Registration"
+                      name="gstNumber" 
+                      value={formData.gstNumber} 
+                      onChange={handleInputChange}
+                      placeholder="GSTIN Number"
+                   />
+                </div>
+
+                <div className="flex gap-3">
+                   <button onClick={() => setStep(2)} className="p-3 rounded-xl border border-[#1B4332]/5 text-[#1B4332]/40 hover:text-[#1B4332] transition-colors">
+                      <ArrowLeft size={18} />
+                   </button>
+                   <Button onClick={handleRegister} className="flex-grow h-12 rounded-xl bg-gradient-to-r from-[#1B4332] to-[#2D5A47]" isLoading={isSubmitting}>
+                      Submit Verification
+                   </Button>
+                </div>
+              </motion.div>
+            )}
+
+            {step === 4 && (
+              <motion.div key="success" variants={stepVariants} initial="hidden" animate="visible" className="text-center py-12 space-y-6">
+                <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto shadow-sm">
+                   <CheckCircle2 size={40} />
+                </div>
+                <div>
+                   <h2 className="text-3xl font-black text-[#1B4332]">Identity Created</h2>
+                   <p className="text-xs text-[#1B4332]/40 mt-2 max-w-[200px] mx-auto">Welcome to the valley community. Your credentials are now active.</p>
+                </div>
+                <Button onClick={() => router.push('/login')} className="w-full h-14 rounded-2xl">
+                   Enter the Marketplace
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {step < 4 && (
+          <div className="px-12 py-8 bg-[#FDFBF7]/50 border-t border-[#1B4332]/5 text-center">
+             <p className="text-[10px] font-bold text-[#1B4332]/30 uppercase tracking-widest">
+                Already have an identity? <Link href="/login" className="text-[#1B4332] hover:underline">Sign In</Link>
+             </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
