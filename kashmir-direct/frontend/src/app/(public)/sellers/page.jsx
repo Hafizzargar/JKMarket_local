@@ -15,8 +15,11 @@ export default function SellersPage() {
         .from('sellers')
         .select('*');
       
-      if (!error) {
-        setSellers(data);
+      if (!error && data) {
+        // 🛡️ IDENTITY GUARD: Filter out any potential duplicate records (even with different IDs) 
+        // to ensure the UI only shows one unique workshop per name.
+        const uniqueSellers = Array.from(new Map(data.map(item => [item.shop_name, item])).values());
+        setSellers(uniqueSellers);
       }
       setLoading(false);
     }

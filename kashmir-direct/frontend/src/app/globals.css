@@ -9,6 +9,20 @@
   --primary: #1B4332;
   --accent: #BC6C25;
   --bg-warm: #FDFBF7;
+  
+  /* ⚡ STUDIO DASHBOARD DESIGN SYSTEM */
+  --studio-bg: #0D0D0D;
+  --studio-surface: #161616;
+  --studio-surface2: #1E1E1E;
+  --studio-surface3: #272727;
+  --studio-orange: #E87C2A;
+  --studio-orange-dim: #C4641A;
+  --studio-orange-glow: rgba(232,124,42,0.12);
+  --studio-text: #F0EDE8;
+  --studio-muted: #7A7570;
+  --studio-green: #2ECC71;
+  --studio-red: #E74C3C;
+  --studio-border: rgba(255,255,255,0.07);
 }
 
 body {

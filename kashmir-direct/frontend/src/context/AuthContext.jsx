@@ -1,40 +1,59 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
+import { useStore } from '../store/useStore';
+import { identityGuard } from '../services/AuthService';
 
 const AuthContext = createContext({});
 
-// The designated Super Admin email
-const SUPER_ADMIN_EMAIL = 'hafezzargar987@gmail.com';
-
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState(null);
+  const { profile, setProfile, clearCache } = useStore();
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const fetchProfile = async (uid) => {
+  const fetchProfile = useCallback(async (uid, currentUser = null, force = false) => {
+    // 🛡️ CACHE GUARD: Skip fetch if profile exists and we aren't forcing a refresh
+    if (!force && profile && profile.id === uid) {
+      return;
+    }
+
     try {
       // Fetch base profile
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', uid)
-        .single();
+        .maybeSingle();
       
-      if (profileError) throw profileError;
+      if (profileError || !profileData) {
+        if (profileError && profileError.code !== 'PGRST116') {
+          console.warn('Identity registry sync note:', profileError.message);
+        }
+        
+        // 🩹 VIRTUAL PROFILE FALLBACK
+        if (currentUser) {
+          const metadata = currentUser.user_metadata || {};
+          setProfile({
+            id: uid,
+            full_name: metadata.full_name || 'Artisan',
+            email: currentUser.email,
+            role: metadata.role || 'customer',
+            is_virtual: true
+          });
+        }
+        return;
+      }
 
       // If they are a seller, fetch their seller-specific details
-      if (profileData.role === 'seller') {
-        let { data: sellerData, error: sellerError } = await supabase
+      if (profileData.role === 'seller' || profileData.role === 'shopkeeper') {
+        let { data: sellerData } = await supabase
           .from('sellers')
           .select('*')
           .eq('user_id', uid)
           .maybeSingle();
         
-        // 🩹 SILENT SYNC: If registry is missing, we handle it in the UI rather than forcing an insert
-        // which triggers FK violations on the 'users' table.
         setProfile({ ...profileData, seller: sellerData });
       } else {
         setProfile(profileData);
@@ -42,7 +61,7 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       console.error('Identity registry sync error:', err);
     }
-  };
+  }, [profile, setProfile]);
 
   useEffect(() => {
     const getSession = async () => {
@@ -54,7 +73,7 @@ export const AuthProvider = ({ children }) => {
         setUser(currentUser);
         
         if (currentUser) {
-          await fetchProfile(currentUser.id);
+          await fetchProfile(currentUser.id, currentUser);
         }
       } catch (err) {
         console.error('⚖️ [Identity Vault] Session recovery failed:', err);
@@ -71,7 +90,7 @@ export const AuthProvider = ({ children }) => {
       setUser(currentUser);
       
       if (currentUser) {
-        await fetchProfile(currentUser.id);
+        await fetchProfile(currentUser.id, currentUser);
       } else {
         setProfile(null);
       }
@@ -81,30 +100,38 @@ export const AuthProvider = ({ children }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Check if current user is the hardcoded Super Admin
-  const isSuperAdmin = user?.email === SUPER_ADMIN_EMAIL;
 
   const refreshProfile = async () => {
     if (!user) return;
     setIsRefreshing(true);
-    await fetchProfile(user.id);
+    await fetchProfile(user.id, user, true);
     setIsRefreshing(false);
   };
 
   const value = {
-    signUp: (data) => supabase.auth.signUp(data),
-    signIn: (data) => supabase.auth.signInWithPassword(data),
+    signUp: (data) => identityGuard.forgeIdentity(data.email, data.password, data.options?.data),
+    signIn: (data) => identityGuard.executeAuthentication(data.email, data.password),
     signOut: async () => {
-      await supabase.auth.signOut();
+      console.log('🛡️ [Identity Vault] Initiating optimistic session purge...');
+      
+      // 🧹 STEP 1: IMMEDIATE LOCAL PURGE (Optimistic UI)
+      localStorage.clear();
       setUser(null);
       setProfile(null);
+      clearCache();
+
+      try {
+        // 📡 STEP 2: BACKGROUND VAULT SYNC
+        await identityGuard.terminateSession();
+        console.log('✅ [Identity Vault] Sovereign sync complete.');
+      } catch (err) {
+        console.warn('⚠️ [Identity Vault] Termination sync note:', err.message);
+      }
     },
     user,
     profile,
-    // Grant admin access if they have the role OR if they are the Super Admin email
-    isAdmin: isSuperAdmin || profile?.role === 'admin',
-    isSuperAdmin,
-    SUPER_ADMIN_EMAIL,
+    // 🛡️ TOKEN-BASED IDENTITY: Check database profile OR token metadata for admin status
+    isAdmin: profile?.role === 'admin' || profile?.role === 'superadmin' || user?.user_metadata?.role === 'admin' || user?.app_metadata?.role === 'admin',
     loading: loading || isRefreshing,
     refreshProfile
   };

@@ -8,19 +8,27 @@ This document outlines the governance structure, technical breakthroughs, and th
 
 ## 🏛️ Role & Governance Matrix
 
-### 🛡️ Superadmin (The Global Auditor)
-The Superadmin acts as the supreme governor of the marketplace, ensuring purity and authenticity across the valley.
-- **Identity Governance**: Verifies artisan credentials and unlocks shopkeeper access.
-- **Product Audit**: Reviews every listing forged in the valley. Can approve for "LIVE" status or return for "AUDIT."
-- **Marketplace Surveillance**: Monitors logistics, sales, and system-wide analytics.
-- **Operational Command**: Manage categories, financial thresholds, and security policies.
+### 🛡️ Admin Portal (The Oversight Authority)
+The Admin Portal is the high-security command center for the valley's supreme governors and regional managers.
+- **Identity Hardening**: Multi-stage verification of artisan credentials and workshop authenticity.
+- **Product Audit Forge**: A dedicated review pipeline to ensure only elite, authentic products reach the public.
+- **Governance Tools**: Real-time management of categories, regional managers, and marketplace policies.
+- **Regional Oversight**: Managers act as governors for specific valley nodes, handling recruitment and first-line audits.
+- **System Surveillance**: Monitoring transaction health, logistics pulses, and artisan performance metrics.
 
-### 🏪 Shopkeeper / Artisan (The Producer)
-Artisans manage their own boutique nodes within the VIP Tier framework.
-- **The Inventory Forge**: A high-density interface for creating and updating authentic listings.
-- **The Artisan Vault**: A real-time inventory management center with "Multi-Frame" visual indicators.
-- **Brand Identity**: Manage shop profiles, location metadata, and artisan verification status.
-- **Re-Submission Loop**: The ability to fix "Returned" products and instantly re-forge them for review.
+### 🏪 Shopkeeper / Artisan (The Producer Hub)
+The Artisan Hub is a high-density workshop for the valley's creators to forge their digital presence.
+- **The Inventory Vault**: A real-time command center for managing boutique listings with "Ghost-Proof" state synchronization.
+- **Boutique Identity**: Granular control over shop metadata, brand story, and location-based verification.
+- **Visual Analytics**: Interactive row-based indicators for product status (Live, Queued, or Returned).
+- **Commit Workflow**: A streamlined, mobile-optimized interface for updating inventory on the fly.
+
+### 🛍️ Buyer / Customer (The Market Participant)
+The Buyer experience is designed for premium, zero-friction exploration of the valley's treasures.
+- **Elite Discovery**: High-fidelity search and filtering across verified artisan boutiques.
+- **Auth-Gated Cart**: A resilient, persistent shopping experience that bridges identity and intent.
+- **Direct Connection**: Direct access to artisan stories and authentic regional products.
+- **Logistics Transparency**: Real-time visualization of the product journey from the mountain fields to their doorstep.
 
 ---
 
@@ -36,15 +44,40 @@ We have established a resilient, zero-latency cycle for product management:
 
 ---
 
+## 🔄 How It Works: The "Legacy Forge" Careers System
+We have expanded the platform with a high-fidelity recruitment architecture:
+1.  **Public Showcase**: Talent can explore premium roles at `/careers` with advanced filtering.
+2.  **Management Command**: Managers and Superadmins use the **"JobForge"** to draft and post vacancies.
+3.  **Role Isolation**: Recruitment tools are guarded—only authorized management can access the forge.
+
+---
+
 ## 🛠️ Solved Bugs Hall of Fame (Hardening Phase)
 
 | Bug ID | Code Name | Description | Resolution |
 | :--- | :--- | :--- | :--- |
 | **GHOST-01** | The Ghost Bug | Rejected products couldn't be re-submitted due to stale metadata. | Implemented forced metadata purge and RLS status overrides. |
-| **HANG-02** | Mechanical Hang | Infinite loading spinners during image transmission. | Streamlined update logic and added step-by-step telemetry pulses. |
-| **SYNC-03** | State Ghost | Editing a new product showed data from the previous one. | Implemented a React `useEffect` State Watcher for instant sync. |
-| **CACHE-04** | PGRST204 | Supabase couldn't find new columns in the cache. | Executed SQL schema migrations and added cache-busting headers. |
-| **METRIC-05** | Slot Blackout | License card showed "0/5" despite active inventory. | Re-anchored metrics to global total count instead of local page state. |
+| **ECHO-06** | Artisan Echo | Identical seller workshops appearing multiple times on the marketplace. | Implemented a Unique ID & Shop Name Identity Guard in the fetch logic. |
+| **STALL-07** | Session Stall | Logout button not purging local state, trapping users in the dashboard. | Hardened `signOut` with an "Instant State Purge" and "Full Page Reset." |
+| **ID-08** | Tab Amnesia | Browser tabs showed generic titles instead of the Kashmir Direct brand. | Refactored `layout.jsx` to a Server Component to host high-ranking SEO metadata and icons. |
+| **SESSION-09** | Portal Loop | Super Admin identity was trapped in a redirection loop during session refresh. | Hardened `AuthService` with sovereign loading states and explicit path guards. |
+| **MOBILE-10** | Footer Drift | Mobile action footer was obscuring content or failing to trigger on artisan edits. | Implemented "isDirty" sentinel state and fixed layout rhythm in the mobile profile node. |
+
+---
+
+## 📅 Recent Operational Log
+
+### 🗓️ Yesterday (May 9, 2026) - The Hardening Phase
+*   **Identity Sovereignty**: Completed the production-grade stabilization of the Super Admin and Artisan identity portals. 
+*   **Mobile High-Density Refactor**: Optimized the `ProfileNode` UI for mobile, ensuring a premium "artisan-creme" palette and high-density touch targets.
+*   **Logistics Pulse**: Forged the `LogisticsAnimation` component—a kinetic, SVG-driven flow illustrating the journey from 🏔️ Fields to 🏡 Doorstep.
+*   **Marketplace Parity**: Standardized `ProductCard` components across the marketplace to ensure visual consistency and elite performance.
+*   **Auth-Gated Ecosystem**: Finalized the 'Auth-Gated' cart system and database synchronization between the identity vault and user registry.
+
+### 🗓️ Today (May 10, 2026) - The Polish Phase
+*   **Registration Forge**: Polished the artisan registration workflow (`register/page.jsx`) for zero-friction onboarding.
+*   **Auth Service Finalization**: Hardened the `AuthService.js` to ensure immutable session persistence and persistent cross-tab state.
+*   **Operational Manifesto**: Initialized and updated the Command Center (`what-work-we-do.md`) to maintain high-fidelity oversight of valley operations.
 
 ---
 
@@ -55,10 +88,8 @@ The Vault now features "Multi-Frame" indicators and kinetic hover effects to sig
 
 ![Vault Overview](https://hqfeugrebpumkukervqz.supabase.co/storage/v1/object/public/product_images/c3d315b5-2bad-42db-80f6-b45fc7ab7e92/1778270275962_Screenshot%202026-05-02%20204219.png)
 
-### The Inventory Forge
-A hardened, sequential submission engine with real-time progress logging.
-
-![Forge Interface](https://hqfeugrebpumkukervqz.supabase.co/storage/v1/object/public/product_images/c3d315b5-2bad-42db-80f6-b45fc7ab7e92/1778264213324_0.033662285320174234.png)
+### The Legacy Forge (Careers)
+A premium, glassmorphism-inspired careers page for institutional scale.
 
 ---
 

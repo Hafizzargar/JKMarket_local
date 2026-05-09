@@ -22,7 +22,7 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = "ma
              initial={{ opacity: 0, scale: 0.95, y: 20 }} 
              animate={{ opacity: 1, scale: 1, y: 0 }} 
              exit={{ opacity: 0, scale: 0.95, y: 20 }} 
-             className={`bg-[#141A18] w-full ${maxWidth} rounded-3xl border border-white/10 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.7)] overflow-hidden relative z-10`}
+             className={`bg-[#141A18] w-full ${maxWidth} max-h-[90vh] flex flex-col rounded-3xl border border-white/10 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.7)] overflow-hidden relative z-10`}
            >
               {/* Header */}
               {title && (
@@ -38,7 +38,7 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = "ma
               )}
               
               {/* Body */}
-              <div className="p-0">
+              <div className="flex-1 overflow-y-auto custom-scrollbar p-0">
                  {children}
               </div>
            </motion.div>

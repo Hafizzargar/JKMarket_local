@@ -90,9 +90,9 @@ export default function HomePage() {
           <motion.p variants={itemVariants} className="mt-8 text-sm sm:text-lg text-[#1B4332]/50 max-w-2xl mx-auto font-medium leading-relaxed tracking-wide">
             The all-in-one shop management software for local stores. From labour management dashboards to a small business inventory system and delivery management for India—all protected by a secure role-based admin system.
           </motion.p>
-          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-16">
-            <Link href="/products" className="w-full sm:w-auto"><Button size="sm" className="w-full sm:w-56">Shop Authentic</Button></Link>
-            <Link href="/register" className="w-full sm:w-auto"><Button size="sm" variant="secondary" className="w-full sm:w-56">Join Community</Button></Link>
+          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-12 pb-12">
+            <Link href="/products" className="w-full sm:w-auto"><Button size="sm" className="w-full sm:w-44 h-11">Shop Authentic</Button></Link>
+            <Link href="/register" className="w-full sm:w-auto"><Button size="sm" variant="secondary" className="w-full sm:w-44 h-11">Join Community</Button></Link>
           </motion.div>
         </motion.div>
       </section>
@@ -228,9 +228,11 @@ export default function HomePage() {
                   <p className="mt-4 text-xs font-bold text-[#1B4332]/40 leading-relaxed max-w-xs mx-auto">
                     Scanning this seal reveals the laboratory report, artisan identity, and harvest date of your treasure.
                   </p>
-                  <div className="mt-12 bg-[#1B4332] text-white px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl">
-                    View Sample Report
-                  </div>
+                  <Link href="/products">
+                    <div className="mt-12 bg-[#1B4332] text-white px-10 py-3.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-xl hover:scale-105 transition-transform cursor-pointer">
+                      View Sample Report
+                    </div>
+                  </Link>
                </div>
             </motion.div>
           </div>
@@ -397,8 +399,8 @@ export default function HomePage() {
       {/* FOOTER CTA */}
       <section className="py-24 sm:py-40 px-6 bg-[#1B4332] rounded-t-[4rem] sm:rounded-t-[6rem]">
         <div className="max-w-7xl mx-auto text-center">
-            <h2 className="text-4xl sm:text-7xl font-black text-white leading-[1.1] tracking-tighter mb-16">Pure Heritage. <br/>Direct to You.</h2>
-            <Link href="/products"><Button variant="secondary" size="md" className="px-16">Shop the Harvest</Button></Link>
+            <h2 className="text-4xl sm:text-7xl font-black text-white leading-[1.1] tracking-tighter mb-12">Pure Heritage. <br/>Direct to You.</h2>
+            <Link href="/products"><Button variant="secondary" size="sm" className="px-12 h-12">Shop the Harvest</Button></Link>
         </div>
       </section>
     </div>

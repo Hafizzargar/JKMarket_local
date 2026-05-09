@@ -15,11 +15,14 @@ export default function SellerProductForm({ onClose, initialData = null }) {
   const [formData, setFormData] = useState({ 
     name: initialData?.title || '', 
     price: initialData?.price || '', 
+    actual_price: initialData?.actual_price || '',
     currency: initialData?.currency || 'INR',
     weight_value: initialData?.weight_value || '1',
     weight_unit: initialData?.weight_unit || 'kg',
     category: initialData?.category || 'Fresh Fruits', 
-    description: initialData?.description || '' 
+    description: initialData?.description || '',
+    rating: initialData?.rating || '4.9',
+    location: initialData?.location || ''
   });
   const [images, setImages] = useState([]);
   const [uploading, setUploading] = useState(false);
@@ -31,11 +34,14 @@ export default function SellerProductForm({ onClose, initialData = null }) {
     setFormData({
       name: initialData?.title || '', 
       price: initialData?.price || '', 
+      actual_price: initialData?.actual_price || '',
       currency: initialData?.currency || 'INR',
       weight_value: initialData?.weight_value || '1',
       weight_unit: initialData?.weight_unit || 'kg',
       category: initialData?.category || 'Fresh Fruits', 
-      description: initialData?.description || '' 
+      description: initialData?.description || '',
+      rating: initialData?.rating || '4.9',
+      location: initialData?.location || ''
     });
     setImages(initialData?.images?.map(url => ({ preview: url, existing: true })) || []);
     setSubmitted(false);
@@ -43,15 +49,31 @@ export default function SellerProductForm({ onClose, initialData = null }) {
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
+    const MAX_SIZE = 1 * 1024 * 1024; // 1MB Limit
+
+    const oversized = files.filter(f => f.size > MAX_SIZE);
+    if (oversized.length > 0) {
+      const actualSize = (oversized[0].size / (1024 * 1024)).toFixed(2);
+      toast.error(`Image too heavy (${actualSize}MB). Max limit 1MB.`, {
+        icon: '⚖️',
+        style: { background: '#1B4332', color: '#fff', fontSize: '10px', fontWeight: '900', borderRadius: '1rem' }
+      });
+      return;
+    }
+
     if (images.length + files.length > 4) { toast.error('Max 4 frames'); return; }
-    setImages([...images, ...files.map(file => ({ file, preview: URL.createObjectURL(file) }))]);
+    setImages([...images, ...files.map(file => ({ 
+      file, 
+      preview: URL.createObjectURL(file),
+      size: (file.size / (1024 * 1024)).toFixed(2) + 'MB'
+    }))]);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     try {
-      console.log('⚡ Step 0: Engine Start');
+      console.log('⚡ Engine Start: Forge Sequence Initiated');
       if (!user) { toast.error('Session Expired'); return; }
       if (images.length < 1) { toast.error('Add visuals'); return; }
       setUploading(true);
@@ -62,9 +84,8 @@ export default function SellerProductForm({ onClose, initialData = null }) {
       for (const img of imageList) {
         if (img.existing) { 
           urls.push(img.preview); 
-        } else if (img.file) { // 🛡️ SAFETY CHECK: Skip if file is missing
+        } else if (img.file) { 
           const path = `${user.id}/${Date.now()}_${img.file.name || 'unnamed'}`;
-          console.log(`📡 Step 1: Uploading Visual... ${path}`);
           const { error: uploadError } = await supabase.storage.from('product_images').upload(path, img.file);
           if (uploadError) throw uploadError;
           
@@ -72,12 +93,13 @@ export default function SellerProductForm({ onClose, initialData = null }) {
           urls.push(publicUrl);
         }
       }
-      console.log('✅ Step 2: Visuals Committed');
 
       const payload = {
         title: formData.name, 
         description: formData.description,
         price: parseFloat(formData.price), 
+        actual_price: formData.actual_price ? parseFloat(formData.actual_price) : null,
+        rating: parseFloat(formData.rating),
         currency: formData.currency,
         weight_value: formData.weight_value, 
         weight_unit: formData.weight_unit,
@@ -86,15 +108,13 @@ export default function SellerProductForm({ onClose, initialData = null }) {
         images: urls, 
         status: 'pending',
         is_approved: false, 
-        rejection_reason: null
+        rejection_reason: null,
+        location: formData.location
       };
-
-      console.log('📡 Step 3: Syncing with Vault...', payload);
 
       if (initialData?.id) {
         const { error: updateError } = await supabase.from('products').update(payload).eq('id', initialData.id);
         if (updateError) throw updateError;
-        console.log('🎉 Step 4: Vault Updated');
       } else {
         const { data: s } = await supabase.from('sellers').select('id').eq('user_id', user.id).maybeSingle();
         const { error: insertError } = await supabase.from('products').insert([{ 
@@ -102,13 +122,11 @@ export default function SellerProductForm({ onClose, initialData = null }) {
           seller_id: s?.id || user.id 
         }]);
         if (insertError) throw insertError;
-        console.log('🎉 Step 4: New Node Forged');
       }
 
-      onClose?.(); // ⚡ INSTANT CLOSE
+      onClose?.(); 
       toast.success(initialData?.id ? 'Listing Updated' : 'Forged Successfully!');
     } catch (err) { 
-      console.error('❌ FORGE CRITICAL FAILURE:', err);
       toast.error(err.message || 'Transmission Failed'); 
     } finally { 
       setUploading(false); 
@@ -143,11 +161,23 @@ export default function SellerProductForm({ onClose, initialData = null }) {
                   </div>
                </div>
 
-               {/* 💰 PRICE & WEIGHT UNIT */}
+               {/* 💰 PRICE & ACTUAL PRICE */}
                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                     <label className="text-[8px] font-black uppercase tracking-widest text-white/20 ml-1">Price per Unit</label>
+                     <label className="text-[8px] font-black uppercase tracking-widest text-white/20 ml-1">Final Price (Sale)</label>
                      <input className="w-full bg-white/5 border border-white/5 rounded-lg px-4 py-2.5 text-[11px] font-bold text-white focus:outline-none focus:border-[#BC6C25]/40" type="number" placeholder="2500" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} required />
+                  </div>
+                  <div className="space-y-1.5">
+                     <label className="text-[8px] font-black uppercase tracking-widest text-white/20 ml-1">Actual Price (Strikethrough)</label>
+                     <input className="w-full bg-white/5 border border-white/5 rounded-lg px-4 py-2.5 text-[11px] font-bold text-white focus:outline-none focus:border-[#BC6C25]/40" type="number" placeholder="3000" value={formData.actual_price} onChange={e => setFormData({...formData, actual_price: e.target.value})} />
+                  </div>
+               </div>
+
+               {/* ⭐ RATING & WEIGHT */}
+               <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                     <label className="text-[8px] font-black uppercase tracking-widest text-white/20 ml-1">Simulated Rating (1-5)</label>
+                     <input className="w-full bg-white/5 border border-white/5 rounded-lg px-4 py-2.5 text-[11px] font-bold text-white focus:outline-none focus:border-[#BC6C25]/40" type="number" step="0.1" min="1" max="5" placeholder="4.9" value={formData.rating} onChange={e => setFormData({...formData, rating: e.target.value})} />
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                      <div className="space-y-1.5">
@@ -168,11 +198,17 @@ export default function SellerProductForm({ onClose, initialData = null }) {
                   <textarea className="w-full bg-white/5 border border-white/5 rounded-lg px-4 py-3 text-[11px] font-bold text-white min-h-[70px] focus:outline-none focus:border-[#BC6C25]/40 resize-none" placeholder="Describe your artisan masterwork..." value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} required />
                </div>
 
+               <div className="space-y-1.5">
+                  <label className="text-[8px] font-black uppercase tracking-widest text-white/20 ml-1">Sovereign Origin (Location)</label>
+                  <input className="w-full bg-white/5 border border-white/5 rounded-lg px-4 py-2.5 text-[11px] font-bold text-white focus:outline-none focus:border-[#BC6C25]/40" placeholder="e.g. Pampore, Kashmir" value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} />
+               </div>
+
                <div className="grid grid-cols-5 gap-3 items-end">
                   <div className="col-span-4 grid grid-cols-4 gap-2">
                      {images.map((img, i) => (
                         <div key={i} className="aspect-square rounded-lg border border-white/10 overflow-hidden relative group">
                            <img src={img.preview} className="w-full h-full object-cover opacity-60 group-hover:opacity-100" />
+                           {img.size && <span className="absolute bottom-1 left-1 bg-black/60 backdrop-blur-md text-[6px] text-white px-1.5 py-0.5 rounded-sm font-black uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity">{img.size}</span>}
                            <button type="button" onClick={() => setImages(images.filter((_, idx) => idx !== i))} className="absolute top-1 right-1 w-5 h-5 bg-rose-600 rounded-md flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity"><X size={10} /></button>
                         </div>
                      ))}

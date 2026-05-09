@@ -8,14 +8,16 @@ import {
   User, Mail, Phone, ShieldCheck, MapPin, Lock, Camera, Loader2, Save, Globe,
   Eye, EyeOff
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import Button from './Button';
 
-export default function ProfileNode() {
+export default function ProfileNode({ isModal = false }) {
   const { user, profile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
+    email: '',
     address: '',
     phone_number: '',
     gst_number: '',
@@ -26,6 +28,7 @@ export default function ProfileNode() {
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [hasManuallySelected, setHasManuallySelected] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -33,11 +36,26 @@ export default function ProfileNode() {
       setFormData(prev => ({
         ...prev,
         full_name: profile.full_name || '',
-        address: profile.address || ''
+        email: user?.email || '',
+        address: profile.address || '',
+        phone_number: profile.phone_number || '',
+        gst_number: profile.seller?.gst_number || '',
+        pan_number: profile.seller?.pan_number || ''
       }));
       setAvatarUrl(profile.avatar_url);
     }
-  }, [profile, hasManuallySelected]);
+  }, [profile, user, hasManuallySelected]);
+
+  useEffect(() => {
+    if (!profile) return;
+    const hasChanged = 
+      formData.full_name !== (profile.full_name || '') ||
+      formData.address !== (profile.address || '') ||
+      formData.phone_number !== (profile.phone_number || '') ||
+      formData.password !== '';
+    
+    setIsDirty(hasChanged);
+  }, [formData, profile]);
 
   const handleAvatarUpload = async (e) => {
     const file = e.target.files[0];
@@ -100,6 +118,12 @@ export default function ProfileNode() {
       }
 
       // 🛡️ STREAM C: SECURITY CORE (Auth)
+      if (formData.email && formData.email !== user.email) {
+        const { error: emailError } = await supabase.auth.updateUser({ email: formData.email });
+        if (emailError) throw emailError;
+        toast.success('Identity Activation Sent to New Email', { icon: '📧' });
+      }
+
       if (formData.password) {
         if (formData.password !== formData.confirmPassword) throw new Error('Passwords do not match');
         
@@ -121,37 +145,41 @@ export default function ProfileNode() {
     }
   };
 
-  return (
-    <div className="w-full space-y-12">
-      <header className="flex items-center justify-between border-b border-white/5 pb-8">
-         <div>
-            <h2 className="text-xl font-black text-white uppercase tracking-[0.3em]">Identity Node</h2>
-            <p className="text-[10px] text-white/30 uppercase mt-2 tracking-widest font-bold italic">Manage your artisan credentials and security</p>
-         </div>
-         <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/5 border border-emerald-500/10 rounded-full">
-               <ShieldCheck size={12} className="text-emerald-500" />
-               <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Verified Artisan</span>
-            </div>
-            <button 
-                type="submit" 
-                form="identity-forge"
-                disabled={loading} 
-                className="h-12 px-8 rounded-xl bg-[#BC6C25] hover:bg-[#A65D1F] transition-all shadow-[0_0_20px_rgba(188,108,37,0.3)] flex items-center justify-center gap-3 group shrink-0"
-            >
-                {loading ? (
-                  <Loader2 size={16} className="animate-spin text-white" />
-                ) : (
-                  <>
-                     <Save size={14} className="text-white group-hover:scale-110 transition-transform" />
-                     <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white">Commit Changes</span>
-                  </>
-                )}
-            </button>
-         </div>
-      </header>
+  if (!user) return null;
 
-      <form id="identity-forge" onSubmit={handleUpdateProfile} className="flex flex-col lg:flex-row gap-12 items-start">
+  return (
+    <div className={`w-full ${isModal ? 'pb-20' : 'space-y-8 md:space-y-12'}`}>
+      {!isModal && (
+        <header className="flex flex-col md:flex-row md:items-center justify-between border-b border-white/5 pb-8 gap-6">
+           <div>
+              <h2 className="text-lg sm:text-xl font-black text-white uppercase tracking-[0.3em]">Identity Node</h2>
+              <p className="text-[9px] sm:text-[10px] text-white/30 uppercase mt-2 tracking-widest font-bold italic max-w-xs">Manage your artisan credentials and security</p>
+           </div>
+           <div className="flex flex-wrap items-center gap-3 sm:gap-6">
+              <div className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-emerald-500/5 border border-emerald-500/10 rounded-full">
+                 <ShieldCheck size={10} className="text-emerald-500" />
+                 <span className="text-[7px] sm:text-[8px] font-black text-emerald-500 uppercase tracking-widest">Verified Artisan</span>
+              </div>
+              <button 
+                  type="submit" 
+                  form="identity-forge"
+                  disabled={loading} 
+                  className="h-10 sm:h-12 px-6 sm:px-8 rounded-xl bg-[#BC6C25] hover:bg-[#A65D1F] transition-all shadow-[0_0_20px_rgba(188,108,37,0.3)] hidden md:flex items-center justify-center gap-3 group shrink-0"
+              >
+                  {loading ? (
+                    <Loader2 size={14} className="animate-spin text-white" />
+                  ) : (
+                    <>
+                       <Save size={12} className="text-white group-hover:scale-110 transition-transform" />
+                       <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] text-white">Commit Changes</span>
+                    </>
+                  )}
+              </button>
+           </div>
+        </header>
+      )}
+
+      <form id="identity-forge" onSubmit={handleUpdateProfile} className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
          {/* 📸 AVATAR SIDEBAR */}
          <div className="w-full lg:w-64 flex flex-col items-center gap-6 shrink-0">
             <div className="relative group">
@@ -186,70 +214,53 @@ export default function ProfileNode() {
          </div>
 
          {/* 📝 FIELDS GRID */}
-         <div className="flex-1 w-full space-y-8">
+         <div className="flex-1 w-full space-y-6 md:space-y-8">
             {/* IMMUTABLE / CONDITIONAL ROW */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-               {/* 📧 EMAIL - ALWAYS LOCKED */}
-               <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 space-y-1.5 opacity-60">
-                  <label className="text-[7px] font-black uppercase text-white/20 tracking-widest flex items-center gap-2"><Mail size={8} /> Primary Email</label>
-                  <p className="text-[12px] font-bold text-white/70 truncate">{user?.email}</p>
+               {/* 📧 EMAIL - NOW EDITABLE */}
+               <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-4 sm:p-5 space-y-1 focus-within:border-[#BC6C25]/40 transition-all">
+                  <label className="text-[7px] font-black uppercase text-[#BC6C25] tracking-widest flex items-center gap-2"><Mail size={8} /> Primary Email</label>
+                  <input 
+                     className="w-full bg-transparent border-none p-0 text-[12px] font-bold text-white focus:outline-none placeholder:text-white/10"
+                     value={formData.email} 
+                     onChange={e => setFormData({...formData, email: e.target.value})}
+                     placeholder="artisan@vault.com"
+                  />
                </div>
 
-               {/* 📞 PHONE - EDITABLE IF EMPTY */}
-               <div className={`bg-white/[0.02] border rounded-2xl p-5 space-y-1.5 transition-all ${!profile?.phone_number ? 'border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.05)]' : 'border-white/5 opacity-60'}`}>
+               {/* 📞 PHONE - ALWAYS EDITABLE */}
+               <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-4 sm:p-5 space-y-1 focus-within:border-[#BC6C25]/40 transition-all">
                   <label className="text-[7px] font-black uppercase text-[#BC6C25] tracking-widest flex items-center gap-2">
-                    <Phone size={8} /> Phone Primary {!profile?.phone_number && '• Required'}
+                    <Phone size={8} /> Phone Primary
                   </label>
-                  {!profile?.phone_number ? (
-                    <input 
-                      className="w-full bg-transparent border-none p-0 text-[12px] font-bold text-white focus:outline-none placeholder:text-white/10"
-                      value={formData.phone_number} 
-                      onChange={e => setFormData({...formData, phone_number: e.target.value})}
-                      placeholder="+91 XXXXX XXXXX"
-                    />
-                  ) : (
-                    <p className="text-[12px] font-bold text-white/70">{profile.phone_number}</p>
-                  )}
+                  <input 
+                     className="w-full bg-transparent border-none p-0 text-[12px] font-bold text-white focus:outline-none placeholder:text-white/10"
+                     value={formData.phone_number} 
+                     onChange={e => setFormData({...formData, phone_number: e.target.value})}
+                     placeholder="+91 XXXXX XXXXX"
+                  />
                </div>
 
-               {/* 🏢 GSTIN - EDITABLE IF EMPTY */}
-               <div className={`bg-white/[0.02] border rounded-2xl p-5 space-y-1.5 transition-all ${!profile?.seller?.gst_number ? 'border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.05)]' : 'border-white/5 opacity-60'}`}>
-                  <label className="text-[7px] font-black uppercase text-[#BC6C25] tracking-widest flex items-center gap-2">
-                    <Globe size={8} /> GST Reference {!profile?.seller?.gst_number && '• Required'}
+               {/* 🏢 GSTIN - IMMUTABLE (LOCKED) */}
+               <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 sm:p-5 space-y-1 opacity-40 grayscale cursor-not-allowed">
+                  <label className="text-[7px] font-black uppercase text-white/20 tracking-widest flex items-center gap-2">
+                    <Globe size={8} /> GST Reference (Locked)
                   </label>
-                  {!profile?.seller?.gst_number ? (
-                    <input 
-                      className="w-full bg-transparent border-none p-0 text-[12px] font-bold text-white focus:outline-none placeholder:text-white/10"
-                      value={formData.gst_number} 
-                      onChange={e => setFormData({...formData, gst_number: e.target.value})}
-                      placeholder="GSTIN Node ID"
-                    />
-                  ) : (
-                    <p className="text-[12px] font-bold text-white/70">VERIFIED: {profile.seller.gst_number}</p>
-                  )}
+                  <p className="text-[12px] font-bold text-white/70 truncate">{profile?.seller?.gst_number || 'UNASSIGNED'}</p>
                </div>
 
-               {/* 🛡️ PAN - EDITABLE IF EMPTY */}
-               <div className={`bg-white/[0.02] border rounded-2xl p-5 space-y-1.5 transition-all ${!profile?.seller?.pan_number ? 'border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.05)]' : 'border-white/5 opacity-60'}`}>
-                  <label className="text-[7px] font-black uppercase text-[#BC6C25] tracking-widest flex items-center gap-2">
-                    <ShieldCheck size={8} /> PAN Reference {!profile?.seller?.pan_number && '• Required'}
+               {/* 🛡️ PAN - IMMUTABLE (LOCKED) */}
+               <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 sm:p-5 space-y-1 opacity-40 grayscale cursor-not-allowed">
+                  <label className="text-[7px] font-black uppercase text-white/20 tracking-widest flex items-center gap-2">
+                    <ShieldCheck size={8} /> PAN Reference (Locked)
                   </label>
-                  {!profile?.seller?.pan_number ? (
-                    <input 
-                      className="w-full bg-transparent border-none p-0 text-[12px] font-bold text-white focus:outline-none placeholder:text-white/10"
-                      value={formData.pan_number} 
-                      onChange={e => setFormData({...formData, pan_number: e.target.value})}
-                      placeholder="Permanent Account Node"
-                    />
-                  ) : (
-                    <p className="text-[12px] font-bold text-white/70">VERIFIED: {profile.seller.pan_number}</p>
-                  )}
+                  <p className="text-[12px] font-bold text-white/70 truncate">{profile?.seller?.pan_number || 'UNASSIGNED'}</p>
                </div>
             </div>
 
             {/* EDITABLE GRID */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-               <div className="space-y-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
+               <div className="space-y-1 md:space-y-2">
                   <label className="text-[8px] font-black uppercase text-white/40 tracking-widest ml-1">Artisan Name</label>
                   <input 
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[11px] font-bold text-white focus:outline-none focus:border-[#BC6C25]/60 transition-colors"
@@ -257,7 +268,7 @@ export default function ProfileNode() {
                     onChange={e => setFormData({...formData, full_name: e.target.value})} 
                   />
                </div>
-               <div className="space-y-2">
+               <div className="space-y-1 md:space-y-2">
                   <label className="text-[8px] font-black uppercase text-white/40 tracking-widest ml-1">Studio Address</label>
                   <input 
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[11px] font-bold text-white focus:outline-none focus:border-[#BC6C25]/60 transition-colors"
@@ -265,7 +276,7 @@ export default function ProfileNode() {
                     onChange={e => setFormData({...formData, address: e.target.value})} 
                   />
                </div>
-               <div className="space-y-2 relative group/pass">
+               <div className="space-y-1 md:space-y-2 relative group/pass">
                   <label className="text-[8px] font-black uppercase text-white/40 tracking-widest ml-1">New Reset Pass</label>
                   <div className="relative">
                      <input 
@@ -303,6 +314,56 @@ export default function ProfileNode() {
             </div>
          </div>
       </form>
+
+      {isModal && (
+        <div className="fixed bottom-0 left-0 right-0 p-8 bg-[#0D1110] border-t border-white/5 flex items-center justify-between z-20">
+           <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/5 border border-emerald-500/10 rounded-full">
+              <ShieldCheck size={12} className="text-emerald-500" />
+              <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Verified Artisan</span>
+           </div>
+           <button 
+               type="submit" 
+               form="identity-forge"
+               disabled={loading} 
+               className="h-14 px-10 rounded-2xl bg-[#BC6C25] hover:bg-[#A65D1F] transition-all shadow-[0_0_30px_rgba(188,108,37,0.2)] flex items-center justify-center gap-4 group"
+           >
+               {loading ? (
+                 <Loader2 size={20} className="animate-spin text-white" />
+               ) : (
+                 <>
+                    <Save size={18} className="text-white group-hover:scale-110 transition-transform" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white">Commit Changes</span>
+                 </>
+               )}
+           </button>
+        </div>
+      )}
+      {/* 🛠️ STICKY MOBILE ACTION BAR */}
+      {!isModal && isDirty && (
+        <div className="lg:hidden fixed bottom-10 inset-x-0 z-[60] flex justify-center px-6 pointer-events-none">
+          <motion.div 
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className="pointer-events-auto"
+          >
+             <button 
+                type="submit" 
+                form="identity-forge"
+                disabled={loading} 
+                className="h-12 px-10 rounded-full bg-[#BC6C25] text-white shadow-[0_10px_40px_rgba(188,108,37,0.4)] flex items-center justify-center gap-3 transition-all active:scale-95 border border-white/10"
+             >
+                {loading ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <>
+                     <Save size={14} />
+                     <span className="text-[10px] font-black uppercase tracking-[0.2em]">Commit Changes</span>
+                  </>
+                )}
+             </button>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }
