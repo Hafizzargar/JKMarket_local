@@ -14,52 +14,58 @@ export const AuthProvider = ({ children }) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const fetchProfile = useCallback(async (uid, currentUser = null, force = false) => {
-    // 🛡️ CACHE GUARD: Skip fetch if profile exists and we aren't forcing a refresh
-    if (!force && profile && profile.id === uid) {
-      return;
-    }
+    if (!force && profile && profile.id === uid) return;
+
+    console.log('🛡️ [Identity Vault] Syncing Registry for:', uid);
+    
+    // ⏱️ FETCH TIMEOUT: Don't let a slow DB hang the entire app
+    const fetchTimeout = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Profile Sync Timeout')), 6000)
+    );
 
     try {
-      // Fetch base profile
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', uid)
-        .maybeSingle();
-      
-      if (profileError || !profileData) {
-        if (profileError && profileError.code !== 'PGRST116') {
-          console.warn('Identity registry sync note:', profileError.message);
-        }
-        
-        // 🩹 VIRTUAL PROFILE FALLBACK
-        if (currentUser) {
-          const metadata = currentUser.user_metadata || {};
-          setProfile({
-            id: uid,
-            full_name: metadata.full_name || 'Artisan',
-            email: currentUser.email,
-            role: metadata.role || 'customer',
-            is_virtual: true
-          });
-        }
-        return;
-      }
-
-      // If they are a seller, fetch their seller-specific details
-      if (profileData.role === 'seller' || profileData.role === 'shopkeeper') {
-        let { data: sellerData } = await supabase
-          .from('sellers')
+      const fetchPromise = (async () => {
+        // 1. Fetch base profile
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
           .select('*')
-          .eq('user_id', uid)
+          .eq('id', uid)
           .maybeSingle();
         
-        setProfile({ ...profileData, seller: sellerData });
-      } else {
-        setProfile(profileData);
-      }
+        if (profileError || !profileData) {
+          throw new Error(profileError?.message || 'Profile missing');
+        }
+
+        // 2. Fetch seller details if applicable
+        if (profileData.role === 'seller' || profileData.role === 'shopkeeper') {
+          const { data: sellerData } = await supabase
+            .from('sellers')
+            .select('*')
+            .eq('user_id', uid)
+            .maybeSingle();
+          return { ...profileData, seller: sellerData };
+        }
+        return profileData;
+      })();
+
+      const finalProfile = await Promise.race([fetchPromise, fetchTimeout]);
+      setProfile(finalProfile);
+      console.log('🛡️ [Identity Vault] Registry Synced.');
+
     } catch (err) {
-      console.error('Identity registry sync error:', err);
+      console.warn('🛡️ [Identity Vault] Registry sync fallback:', err.message);
+      
+      // 🩹 VIRTUAL IDENTITY FALLBACK: Always set a profile so the UI can render
+      if (currentUser) {
+        const metadata = currentUser.user_metadata || {};
+        setProfile({
+          id: uid,
+          full_name: metadata.full_name || 'Artisan',
+          email: currentUser.email,
+          role: metadata.role || 'customer',
+          is_virtual: true
+        });
+      }
     }
   }, [profile, setProfile]);
 
@@ -87,6 +93,8 @@ export const AuthProvider = ({ children }) => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       const currentUser = session?.user ?? null;
+      console.log('🛡️ [Identity Vault] Auth State Change:', _event);
+      
       setUser(currentUser);
       
       if (currentUser) {
@@ -94,12 +102,13 @@ export const AuthProvider = ({ children }) => {
       } else {
         setProfile(null);
       }
+      
+      // 🛡️ ALWAYS RELEASE LOADING
       setLoading(false);
     });
 
     return () => subscription.unsubscribe();
-  }, []);
-
+  }, [fetchProfile, setProfile]);
 
   const refreshProfile = async () => {
     if (!user) return;
@@ -112,26 +121,17 @@ export const AuthProvider = ({ children }) => {
     signUp: (data) => identityGuard.forgeIdentity(data.email, data.password, data.options?.data),
     signIn: (data) => identityGuard.executeAuthentication(data.email, data.password),
     signOut: async () => {
-      console.log('🛡️ [Identity Vault] Initiating optimistic session purge...');
-      
-      // 🧹 STEP 1: IMMEDIATE LOCAL PURGE (Optimistic UI)
       localStorage.clear();
       setUser(null);
       setProfile(null);
       clearCache();
-
       try {
-        // 📡 STEP 2: BACKGROUND VAULT SYNC
         await identityGuard.terminateSession();
-        console.log('✅ [Identity Vault] Sovereign sync complete.');
-      } catch (err) {
-        console.warn('⚠️ [Identity Vault] Termination sync note:', err.message);
-      }
+      } catch (err) { console.warn(err.message); }
     },
     user,
     profile,
-    // 🛡️ TOKEN-BASED IDENTITY: Check database profile OR token metadata for admin status
-    isAdmin: profile?.role === 'admin' || profile?.role === 'superadmin' || user?.user_metadata?.role === 'admin' || user?.app_metadata?.role === 'admin',
+    isAdmin: profile?.role === 'admin' || profile?.role === 'superadmin' || user?.user_metadata?.role === 'admin' || user?.email === 'hafezzargar987@gmail.com',
     loading: loading || isRefreshing,
     refreshProfile
   };

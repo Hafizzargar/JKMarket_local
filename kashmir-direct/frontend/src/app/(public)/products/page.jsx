@@ -25,9 +25,9 @@ export default function ProductsPage() {
     return () => clearTimeout(timer);
   }, [user, fetchProducts, products.length]);
 
-  const categories = ['All', ...new Set(products.map(p => p.category))];
+  const categories = ['All', ...new Set((products || []).map(p => p.category))];
 
-  const filteredProducts = products.filter(p => 
+  const filteredProducts = (products || []).filter(p => 
     (search === '' || p.title.toLowerCase().includes(search.toLowerCase()) || p.category?.toLowerCase().includes(search.toLowerCase())) &&
     (activeCategory === 'All' || p.category === activeCategory)
   );
@@ -44,7 +44,7 @@ export default function ProductsPage() {
   );
 
   return (
-    <div className="relative min-h-screen bg-[#FDFBF7]">
+    <div className="relative min-h-screen bg-[#FDFBF7] pt-32 sm:pt-40">
       {/* 🏔️ AMBIENT BACKGROUND */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-[#BC6C25]/[0.03] rounded-full blur-[120px]" />

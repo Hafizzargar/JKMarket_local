@@ -9,7 +9,7 @@ export default function ConfirmDialog({
   isOpen, 
   onClose, 
   onConfirm, 
-  title = "Security Clearance", 
+  title = "Confirmation", 
   message = "Are you sure you want to proceed with this high-risk operation?",
   confirmText = "Purge Record",
   variant = "danger" 
@@ -21,15 +21,15 @@ export default function ConfirmDialog({
              <AlertTriangle size={32} className={variant === 'danger' ? 'animate-pulse' : ''} />
           </div>
           
-          <h4 className="text-sm font-black text-white uppercase tracking-widest mb-3">Authorize Action</h4>
-          <p className="text-[11px] text-white/40 leading-relaxed px-4">{message}</p>
+          <h4 className="text-sm font-black text-[#1B4332] uppercase tracking-widest mb-3">Confirm Action</h4>
+          <p className="text-[11px] text-[#1B4332]/40 leading-relaxed px-4">{message}</p>
           
           <div className="grid grid-cols-2 gap-3 mt-10">
              <button 
                onClick={onClose}
-               className="h-12 rounded-xl bg-white/5 border border-white/5 text-[9px] font-black uppercase tracking-widest text-white/40 hover:bg-white/10 hover:text-white transition-all"
+               className="h-12 rounded-xl bg-[#1B4332]/5 border border-[#1B4332]/5 text-[9px] font-black uppercase tracking-widest text-[#1B4332]/40 hover:bg-white/10 hover:text-[#1B4332] transition-all"
              >
-                Abort
+                Cancel
              </button>
              <Button 
                onClick={() => { onConfirm(); onClose(); }}

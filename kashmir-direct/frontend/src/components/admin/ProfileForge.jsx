@@ -18,7 +18,7 @@ export default function ProfileForge({ profile, onUpdate }) {
     full_name: profile?.full_name || '',
     email: profile?.email || '',
     phone_number: profile?.phone_number || '',
-    address: profile?.address || 'Quantum Command Center',
+    address: profile?.address || 'Main Office',
   });
   const [isDirty, setIsDirty] = useState(false);
 
@@ -27,32 +27,27 @@ export default function ProfileForge({ profile, onUpdate }) {
     const hasChanged = 
       formData.full_name !== (profile?.full_name || '') ||
       formData.phone_number !== (profile?.phone_number || '') ||
-      formData.address !== (profile?.address || 'Quantum Command Center');
+      formData.address !== (profile?.address || 'Main Office');
     
     setIsDirty(hasChanged);
   }, [formData, profile]);
 
   const handleUpdateProfile = async (e) => {
     if (e) e.preventDefault();
-    console.log('🛡️ IDENTITY FORGE INITIATED');
+    console.log('🛡️ IDENTITY UPDATE INITIATED');
     
     setLoading(true);
     try {
-      if (!profile?.id) throw new Error('Identity Node ID missing');
+      if (!profile?.id) throw new Error('User ID missing');
 
-      console.log('🔑 CHECKING VAULT CONNECTIVITY...');
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError || !sessionData?.session) {
-        console.error('❌ SESSION EXPIRED OR INVALID');
-        toast.error('Sovereign session expired. Re-authenticating...');
-        setTimeout(() => router.push('/login'), 1500);
+        toast.error('Session expired. Please login again.');
+        setTimeout(() => router.replace('/login'), 1500);
         return;
       }
 
-      console.log('📡 SESSION STATUS: ACTIVE');
-
-      console.log('📡 DISPATCHING TO SUPABASE VAULT...');
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -61,32 +56,26 @@ export default function ProfileForge({ profile, onUpdate }) {
         })
         .eq('id', profile.id);
 
-      if (error) {
-        console.error('🛰️ VAULT ERROR:', error);
-        throw error;
-      }
+      if (error) throw error;
       
-      console.log('✅ VAULT SYNCHRONIZED SUCCESSFULLY');
-      toast.success('Identity Forge Complete');
+      toast.success('Profile updated successfully');
       setIsDirty(false);
       
       if (onUpdate) await onUpdate();
     } catch (err) {
-      console.error('❌ IDENTITY FORGE FAILURE:', err);
-      toast.error(err.message || 'Identity synchronization failed.');
+      toast.error(err.message || 'Update failed.');
     } finally {
-      console.log('🏁 FORGE CYCLE COMPLETE');
       setLoading(false);
     }
   };
 
   return (
-    <div className="w-full space-y-8 max-w-6xl mx-auto">
+    <div className="w-full space-y-12 max-w-6xl mx-auto">
       {/* 🏹 HEADER ACTION BAR */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between border-b border-white/5 pb-8 gap-6">
+      <header className="flex flex-col md:flex-row md:items-center justify-between border-b border-[#1B4332]/5 pb-8 gap-6">
          <div>
-            <h2 className="text-xl font-black text-white uppercase tracking-[0.3em] italic">Identity Forge</h2>
-            <p className="text-[10px] text-white/30 uppercase mt-2 tracking-widest font-bold italic max-w-xs">Modify Sovereign Access Protocol</p>
+            <h2 className="text-2xl font-black text-[#1B4332] uppercase tracking-[0.3em] italic">My Profile</h2>
+            <p className="text-[10px] text-[#1B4332]/30 uppercase mt-2 tracking-widest font-bold italic max-w-xs">Update your personal and account details</p>
          </div>
          <div className="flex items-center gap-6">
             <div className="flex items-center gap-2 px-4 py-2 bg-[#BC6C25]/5 border border-[#BC6C25]/10 rounded-full">
@@ -97,14 +86,14 @@ export default function ProfileForge({ profile, onUpdate }) {
               <button 
                   onClick={handleUpdateProfile}
                   disabled={loading} 
-                  className="h-12 px-8 rounded-xl bg-[#BC6C25] hover:bg-[#A65D1F] transition-all shadow-[0_0_20px_rgba(188,108,37,0.3)] flex items-center justify-center gap-3 group shrink-0"
+                  className="h-12 px-8 rounded-xl bg-[#BC6C25] hover:bg-[#A65D1F] transition-all shadow-2xl shadow-[#BC6C25]/20 flex items-center justify-center gap-3 group shrink-0"
               >
                   {loading ? (
                     <Loader2 size={14} className="animate-spin text-white" />
                   ) : (
                     <>
                        <Save size={12} className="text-white group-hover:scale-110 transition-transform" />
-                       <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white">Commit Changes</span>
+                       <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white">Save Changes</span>
                     </>
                   )}
               </button>
@@ -116,33 +105,33 @@ export default function ProfileForge({ profile, onUpdate }) {
          {/* 📸 AVATAR / DESIGNATION */}
          <div className="w-full lg:w-64 flex flex-col items-center gap-6 shrink-0">
             <div className="relative group">
-               <div className="w-32 h-32 rounded-[2.5rem] bg-gradient-to-br from-[#BC6C25] to-[#E87C2A] flex items-center justify-center text-white text-4xl font-black shadow-2xl shadow-[#BC6C25]/20 border-4 border-[#1A2220]">
+               <div className="w-32 h-32 rounded-[2.5rem] bg-gradient-to-br from-[#BC6C25] to-[#E87C2A] flex items-center justify-center text-white text-4xl font-black shadow-2xl shadow-[#BC6C25]/20 border-4 border-white">
                   {formData.full_name.substring(0, 2).toUpperCase() || 'AD'}
                </div>
-               <button className="absolute -bottom-2 -right-2 w-10 h-10 bg-[#141A18] border border-white/10 rounded-xl flex items-center justify-center text-white/40 hover:text-[#BC6C25] transition-all shadow-xl">
+               <button className="absolute -bottom-2 -right-2 w-10 h-10 bg-white border border-[#1B4332]/10 rounded-xl flex items-center justify-center text-[#1B4332]/20 hover:text-[#BC6C25] transition-all shadow-xl">
                   <Camera size={18} />
                </button>
             </div>
             <div className="text-center space-y-2">
-               <p className="text-[10px] font-black text-[#BC6C25] uppercase tracking-widest leading-none">Super Admin</p>
-               <p className="text-[7px] font-black text-white/10 uppercase tracking-[0.2em] px-4 leading-relaxed italic">Quantum Node Operator</p>
+               <p className="text-[11px] font-black text-[#BC6C25] uppercase tracking-widest leading-none">Super Admin</p>
+               <p className="text-[8px] font-black text-[#1B4332]/20 uppercase tracking-[0.2em] px-4 leading-relaxed italic">Administrator</p>
             </div>
          </div>
 
          {/* 📝 FIELDS GRID - SINGLE SCREEN STYLE */}
-         <div className="flex-1 w-full space-y-8">
+         <div className="flex-1 w-full space-y-10">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                {/* 📧 EMAIL - LOCKED */}
-               <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 space-y-1 opacity-40 cursor-not-allowed">
-                  <label className="text-[7px] font-black uppercase text-white/20 tracking-widest flex items-center gap-2"><Mail size={8} /> Secure Email</label>
-                  <p className="text-[12px] font-bold text-white/70 truncate">{formData.email}</p>
+               <div className="bg-[#1B4332]/5 border border-[#1B4332]/5 rounded-2xl p-5 space-y-1 opacity-60 cursor-not-allowed">
+                  <label className="text-[7px] font-black uppercase text-[#1B4332]/40 tracking-widest flex items-center gap-2"><Mail size={8} /> Account Email</label>
+                  <p className="text-[12px] font-bold text-[#1B4332]/70 truncate">{formData.email}</p>
                </div>
 
                {/* 📞 PHONE */}
-               <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-5 space-y-1 focus-within:border-[#BC6C25]/40 transition-all">
-                  <label className="text-[7px] font-black uppercase text-[#BC6C25] tracking-widest flex items-center gap-2"><Phone size={8} /> Phone Protocol</label>
+               <div className="bg-[#1B4332]/[0.02] border border-[#1B4332]/10 rounded-2xl p-5 space-y-1 focus-within:border-[#BC6C25]/40 transition-all shadow-sm">
+                  <label className="text-[7px] font-black uppercase text-[#BC6C25] tracking-widest flex items-center gap-2"><Phone size={8} /> Phone Number</label>
                   <input 
-                     className="w-full bg-transparent border-none p-0 text-[12px] font-bold text-white focus:outline-none placeholder:text-white/10"
+                     className="w-full bg-transparent border-none p-0 text-[12px] font-bold text-[#1B4332] focus:outline-none placeholder:text-[#1B4332]/10"
                      value={formData.phone_number} 
                      onChange={e => { setFormData({...formData, phone_number: e.target.value}); }}
                      placeholder="+91 XXXXX XXXXX"
@@ -150,37 +139,37 @@ export default function ProfileForge({ profile, onUpdate }) {
                </div>
 
                {/* 🛡️ ROLE - LOCKED */}
-               <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 space-y-1 opacity-40 cursor-not-allowed">
-                  <label className="text-[7px] font-black uppercase text-white/20 tracking-widest flex items-center gap-2"><Zap size={8} /> Access Level</label>
-                  <p className="text-[12px] font-bold text-white/70 truncate">SUPER ADMIN</p>
+               <div className="bg-[#1B4332]/5 border border-[#1B4332]/5 rounded-2xl p-5 space-y-1 opacity-60 cursor-not-allowed">
+                  <label className="text-[7px] font-black uppercase text-[#1B4332]/40 tracking-widest flex items-center gap-2"><Zap size={8} /> Access Role</label>
+                  <p className="text-[12px] font-bold text-[#1B4332]/70 truncate">Super Admin</p>
                </div>
 
                {/* 🌍 REGION - LOCKED */}
-               <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 space-y-1 opacity-40 cursor-not-allowed">
-                  <label className="text-[7px] font-black uppercase text-white/20 tracking-widest flex items-center gap-2"><Globe size={8} /> Global Presence</label>
-                  <p className="text-[12px] font-bold text-white/70 truncate">KASHMIR DIRECT</p>
+               <div className="bg-[#1B4332]/5 border border-[#1B4332]/5 rounded-2xl p-5 space-y-1 opacity-60 cursor-not-allowed">
+                  <label className="text-[7px] font-black uppercase text-[#1B4332]/40 tracking-widest flex items-center gap-2"><Globe size={8} /> Company</label>
+                  <p className="text-[12px] font-bold text-[#1B4332]/70 truncate">Kashmir Direct</p>
                </div>
             </div>
 
             {/* EDITABLE DETAIL ROW */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-               <div className="space-y-2">
-                  <label className="text-[8px] font-black uppercase text-white/40 tracking-widest ml-1">Full Identity Name</label>
+               <div className="space-y-3">
+                  <label className="text-[8px] font-black uppercase text-[#1B4332]/40 tracking-widest ml-1">Full Name</label>
                   <div className="relative">
-                     <User className="absolute left-4 top-1/2 -translate-y-1/2 text-white/10" size={14} />
+                     <User className="absolute left-4 top-1/2 -translate-y-1/2 text-[#1B4332]/10" size={14} />
                      <input 
-                        className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-4 text-[11px] font-bold text-white focus:outline-none focus:border-[#BC6C25]/60 transition-colors"
+                        className="w-full bg-white border border-[#1B4332]/10 rounded-xl pl-12 pr-4 py-4 text-[11px] font-bold text-[#1B4332] focus:outline-none focus:border-[#BC6C25]/60 transition-colors shadow-sm"
                         value={formData.full_name} 
                         onChange={e => { setFormData({...formData, full_name: e.target.value}); }} 
                      />
                   </div>
                </div>
-               <div className="space-y-2">
-                  <label className="text-[8px] font-black uppercase text-white/40 tracking-widest ml-1">Command Hub Address</label>
+               <div className="space-y-3">
+                  <label className="text-[8px] font-black uppercase text-[#1B4332]/40 tracking-widest ml-1">Office Address</label>
                   <div className="relative">
-                     <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-white/10" size={14} />
+                     <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-[#1B4332]/10" size={14} />
                      <input 
-                        className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-4 text-[11px] font-bold text-white focus:outline-none focus:border-[#BC6C25]/60 transition-colors"
+                        className="w-full bg-white border border-[#1B4332]/10 rounded-xl pl-12 pr-4 py-4 text-[11px] font-bold text-[#1B4332] focus:outline-none focus:border-[#BC6C25]/60 transition-colors shadow-sm"
                         value={formData.address} 
                         onChange={e => { setFormData({...formData, address: e.target.value}); }} 
                      />
@@ -189,14 +178,14 @@ export default function ProfileForge({ profile, onUpdate }) {
             </div>
 
             {/* 🛡️ SECURITY STATUS */}
-            <div className="p-8 rounded-[2rem] bg-gradient-to-br from-[#BC6C25]/5 to-transparent border border-[#BC6C25]/10 flex items-center justify-between">
+            <div className="p-8 rounded-[2rem] bg-gradient-to-br from-[#BC6C25]/5 to-white border border-[#BC6C25]/10 flex items-center justify-between shadow-sm">
                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-[#BC6C25]/20 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-2xl bg-[#BC6C25]/10 flex items-center justify-center border border-[#BC6C25]/20">
                      <Shield size={20} className="text-[#BC6C25]" />
                   </div>
                   <div>
-                     <p className="text-[10px] font-black text-white uppercase tracking-wider">Vault Integrity</p>
-                     <p className="text-[8px] font-bold text-white/20 uppercase tracking-tighter mt-0.5">256-bit AES identity shielding active</p>
+                     <p className="text-[10px] font-black text-[#1B4332] uppercase tracking-wider">Account Security</p>
+                     <p className="text-[8px] font-bold text-[#1B4332]/30 uppercase tracking-tighter mt-0.5">Identity protection active</p>
                   </div>
                </div>
                <div className="flex items-center gap-2">

@@ -62,7 +62,7 @@ export default function BlogPage() {
   );
 
   return (
-    <div className="min-h-screen pt-12 pb-24 px-6 sm:px-8">
+    <div className="min-h-screen pt-32 sm:pt-40 pb-24 px-6 sm:px-8">
       <div className="max-w-7xl mx-auto">
         
         {/* Header Section */}

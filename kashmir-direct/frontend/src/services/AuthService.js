@@ -3,55 +3,66 @@ import { supabase } from '../lib/supabase';
 /**
  * 🛡️ IDENTITY GUARD SERVICE
  * This service abstracts the underlying authentication provider.
- * It provides a "Black Box" for login/logout logic, making it 
- * difficult for external observers to map the UI to specific DB calls.
  */
 class AuthService {
   /**
-   * Performs high-fidelity authentication.
-   * @param {string} identifier - The user's credential (email)
-   * @param {string} secret - The user's password
+   * Performs high-fidelity authentication with timestamped logging and 30s timeout.
    */
   async executeAuthentication(identifier, secret) {
-    console.log('🛡️ [Identity Guard] Commencing secure handshake...');
+    const startTime = Date.now();
+    console.log(`🛡️ [Identity Guard] [${startTime}] Handshake initiated for: ${identifier}`);
     
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: identifier,
-      password: secret,
-    });
+    // ⏱️ EXTENDED TIMEOUT: 30 seconds for slow/mobile connections
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Identity Vault Connection Timed Out (30s)')), 30000)
+    );
 
-    if (error) {
-      console.error('🛡️ [Identity Guard] Handshake failed:', error.message);
-    } else {
-      console.log('🛡️ [Identity Guard] Protocol valid. Access granted.');
+    try {
+      const authPromise = supabase.auth.signInWithPassword({
+        email: identifier,
+        password: secret,
+      });
+
+      const { data, error } = await Promise.race([authPromise, timeoutPromise]);
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+
+      if (error) {
+        console.error(`🛡️ [Identity Guard] [${endTime}] Handshake failed after ${duration}ms:`, error.message);
+      } else {
+        console.log(`🛡️ [Identity Guard] [${endTime}] Protocol valid. Access granted in ${duration}ms.`);
+      }
+
+      return { data, error };
+    } catch (err) {
+      const errorTime = Date.now();
+      console.error(`🛡️ [Identity Guard] [${errorTime}] Critical Handshake Failure:`, err.message);
+      return { data: null, error: { message: err.message || 'Connection Timeout' } };
     }
-
-    return { data, error };
   }
 
-  /**
-   * Terminates the active secure session.
-   */
   async terminateSession() {
     console.log('🛡️ [Identity Guard] Purging active session...');
-    const { error } = await supabase.auth.signOut();
-    return { error };
+    try {
+      const { error } = await supabase.auth.signOut();
+      return { error };
+    } catch (err) {
+      return { error: err };
+    }
   }
 
-  /**
-   * Generates a secure registration node.
-   */
   async forgeIdentity(email, password, metadata = {}) {
     console.log('🛡️ [Identity Guard] Forging new identity node...');
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: metadata,
-      },
-    });
-
-    return { data, error };
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: metadata },
+      });
+      return { data, error };
+    } catch (err) {
+      return { data: null, error: err };
+    }
   }
 }
 

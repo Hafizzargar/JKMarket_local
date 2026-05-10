@@ -1,0 +1,151 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter, usePathname } from 'next/navigation';
+import { 
+  ShieldCheck, LayoutDashboard, Search, Menu, X, Loader2
+} from 'lucide-react';
+import AuthGuard from '@/components/auth/AuthGuard';
+import AdminSidebar from '@/components/admin/AdminSidebar';
+import GovernanceDropdown from '@/components/admin/GovernanceDropdown';
+
+export default function SuperAdminLayout({ children }) {
+  const { user, profile, loading, signOut, isAdmin } = useAuth();
+  const pathname = usePathname();
+  const router = useRouter();
+  
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isDataLoading, setIsDataLoading] = useState(false);
+  
+  // 🛰️ STATS STATE (Shared across layout)
+  const [stats, setStats] = useState({ products: 0, sellers: 0, pending: 0, revenue: '₹0' });
+
+  useEffect(() => {
+    if (isAdmin) fetchGlobalStats();
+  }, [isAdmin]);
+
+  const fetchGlobalStats = async () => {
+    try {
+      const response = await fetch('/api/admin/stats');
+      const data = await response.json();
+      if (!data.error) {
+        setStats({
+          products: data.products,
+          sellers: data.sellers,
+          pending: data.pending,
+          revenue: data.revenue
+        });
+      }
+    } catch (err) {
+      console.error('Stats Sync Failure:', err);
+    }
+  };
+
+  const changeTab = (tabId) => {
+    // If tab maps to a path, navigate there
+    const paths = {
+      overview: '/super-admin/dashboard',
+      products: '/super-admin/products',
+      artisans: '/super-admin/artisans',
+      users: '/super-admin/users',
+      staff: '/super-admin/staff',
+      careers: '/super-admin/careers',
+      settings: '/super-admin/settings'
+    };
+    if (paths[tabId]) router.push(paths[tabId]);
+  };
+
+  if (loading && !user) return (
+    <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center">
+       <div className="w-12 h-12 border-2 border-[#BC6C25]/20 border-t-[#BC6C25] rounded-full animate-spin" />
+    </div>
+  );
+
+  return (
+    <AuthGuard allowedRoles={['admin', 'superadmin']}>
+      <div className="min-h-screen bg-[#FDFBF7] flex font-['Inter',_sans-serif] text-[#1B4332] selection:bg-[#BC6C25] selection:text-white relative overflow-hidden">
+        <div className="bg-organic-mesh opacity-10 absolute inset-0 pointer-events-none" />
+        
+        {/* 📱 MOBILE ADMIN HEADER */}
+        <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-[#FDFBF7]/80 backdrop-blur-xl border-b border-[#1B4332]/5 flex items-center justify-between px-6 z-[70]">
+           <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-[#BC6C25] rounded-lg flex items-center justify-center shadow-lg">
+                 <ShieldCheck size={16} className="text-white" />
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-widest text-[#1B4332]/40">Command</span>
+           </div>
+           <button 
+             onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+             className="w-10 h-10 rounded-xl bg-[#1B4332]/5 border border-[#1B4332]/10 flex items-center justify-center text-[#BC6C25]"
+           >
+              {isSidebarCollapsed ? <LayoutDashboard size={20} /> : <X size={20} />}
+           </button>
+        </header>
+
+        <AdminSidebar 
+          activeTab={pathname.split('/').pop()} 
+          setActiveTab={changeTab} 
+          stats={stats} 
+          signOut={signOut} 
+          isCollapsed={isSidebarCollapsed}
+          setIsCollapsed={setIsSidebarCollapsed}
+          profile={profile}
+        />
+
+        <main className="flex-1 h-screen pt-16 lg:pt-0 flex flex-col overflow-hidden relative">
+          {/* 🏛️ FIXED COMMAND HEADER */}
+          <header className="bg-[#FDFBF7]/80 backdrop-blur-3xl border-b border-[#1B4332]/5 px-6 lg:px-12 py-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 shrink-0 z-[60]">
+             <div>
+                <div className="flex items-center gap-3 mb-1">
+                   <h2 className="text-lg lg:text-xl font-black tracking-tighter uppercase italic leading-none text-[#1B4332]">
+                      {pathname.split('/').pop()} Management
+                   </h2>
+                   {isDataLoading && <Loader2 size={14} className="animate-spin text-[#BC6C25]" />}
+                </div>
+                <div className="flex items-center gap-2">
+                   <div className="w-1 h-1 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_#10b981]" />
+                   <p className="text-[7px] font-black text-[#1B4332]/20 uppercase tracking-[0.3em]">System Active</p>
+                </div>
+             </div>
+             <div className="flex items-center gap-4 lg:gap-6 ml-auto">
+                <div className="relative hidden xl:block">
+                   <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#1B4332]/20" />
+                   <input type="text" placeholder="Search registry..." className="bg-[#1B4332]/5 border border-[#1B4332]/10 rounded-xl pl-10 pr-4 py-2.5 text-[9px] font-black uppercase tracking-widest w-48 text-[#1B4332] focus:border-[#BC6C25]/40 focus:outline-none transition-all" />
+                </div>
+                
+                <GovernanceDropdown onAction={changeTab} />
+
+                <div className="flex items-center gap-3 bg-white/40 p-1 rounded-2xl border border-[#1B4332]/5 shadow-sm hover:border-[#BC6C25]/20 transition-all cursor-pointer group/prof" onClick={() => router.push('/super-admin/settings')}>
+                   <div className="hidden sm:flex flex-col items-end px-2">
+                      <p className="text-[9px] font-black text-[#1B4332] uppercase tracking-tighter leading-none group-hover/prof:text-[#BC6C25] transition-colors">{profile?.full_name?.split(' ')[0] || 'Admin'}</p>
+                      <p className="text-[7px] font-black text-[#BC6C25] uppercase tracking-[0.2em] mt-1">Admin</p>
+                   </div>
+                   <div className="w-9 h-9 bg-gradient-to-br from-[#1B4332] to-[#0A1A13] rounded-xl border border-white/10 flex items-center justify-center text-white font-black text-[10px] shadow-xl shrink-0 overflow-hidden">
+                      {profile?.avatar_url || profile?.profile_image ? (
+                        <img src={profile.avatar_url || profile.profile_image} alt="Profile" className="w-full h-full object-cover" />
+                      ) : (
+                        <span>
+                          {profile?.full_name?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'AD'}
+                        </span>
+                      )}
+                   </div>
+                </div>
+             </div>
+          </header>
+
+          <div className="flex-1 overflow-hidden p-8 lg:p-12 relative">
+             {/* ✨ AMBIENT GLOWS THAT SCROLL WITH CONTENT */}
+             <div className="absolute top-0 right-0 w-[30%] h-[30%] bg-[#BC6C25]/5 blur-[120px] pointer-events-none" />
+             <div className="absolute bottom-0 left-0 w-[30%] h-[30%] bg-[#1B4332]/5 blur-[120px] pointer-events-none" />
+             
+             <div className="max-w-[1600px] mx-auto relative">
+               {children}
+             </div>
+          </div>
+        </main>
+      </div>
+    </AuthGuard>
+  );
+}

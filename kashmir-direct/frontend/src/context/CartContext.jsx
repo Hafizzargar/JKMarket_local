@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { useAuth } from './AuthContext';
 import { supabase } from '../lib/supabase';
+import { useRouter } from 'next/navigation';
 
 const CartContext = createContext({});
 
@@ -11,8 +12,9 @@ export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const router = useRouter();
 
-  const { user } = useAuth();
+  const { user, isAdmin, profile } = useAuth();
   const [isSyncing, setIsSyncing] = useState(false);
 
   // 🔄 INITIAL FETCH: Load cart from LocalStorage OR Database
@@ -32,8 +34,8 @@ export const CartProvider = ({ children }) => {
         }
       }
 
-      // 2. If user is logged in, fetch from Database and sync
-      if (user) {
+      // 2. If user is logged in (and is a customer/buyer), fetch from Database and sync
+      if (user && !isAdmin && (profile?.role === 'customer' || profile?.role === 'buyer')) {
         setIsSyncing(true);
         const { data: dbItems, error } = await supabase
           .from('cart_items')
@@ -64,19 +66,19 @@ export const CartProvider = ({ children }) => {
     };
 
     if (mounted) initializeCart();
-  }, [user, mounted]);
+  }, [user, mounted, isAdmin, profile]);
 
-  // 🛡️ SOVEREIGN PURGE: Wipe cart on logout
+  // 🛡️ PURGE: Wipe cart on logout or admin entry
   useEffect(() => {
-    if (!user && mounted) {
+    if ((!user || isAdmin) && mounted) {
       setCart([]);
       localStorage.removeItem('kashmir_direct_cart');
     }
-  }, [user, mounted]);
+  }, [user, mounted, isAdmin]);
 
   // Helper: Sync single item to Supabase (Optimized API call)
   const syncItemToDb = async (productId, quantity, dbId = null) => {
-    if (!user) return;
+    if (!user || isAdmin) return;
     
     try {
       if (dbId) {
@@ -105,18 +107,37 @@ export const CartProvider = ({ children }) => {
         }
       }
     } catch (err) {
-      console.error('Vault Sync Error:', err);
+      console.error('Cart Sync Error:', err);
     }
   };
 
   // Save cart to LocalStorage whenever it changes
   useEffect(() => {
-    if (mounted) {
+    if (mounted && !isAdmin) {
       localStorage.setItem('kashmir_direct_cart', JSON.stringify(cart));
     }
-  }, [cart, mounted]);
+  }, [cart, mounted, isAdmin]);
 
   const addToCart = async (product) => {
+    // 🛡️ SECURITY GATE: Only allow regular buyers to use the cart
+    // Super Admins and Guest users are redirected to login
+    if (!user || isAdmin || profile?.role !== 'customer') {
+      toast.error('Please login as a buyer to add items to your cart', { 
+        id: 'cart-gate',
+        style: {
+          background: '#1B4332',
+          color: '#fff',
+          borderRadius: '1rem',
+          fontSize: '11px',
+          fontWeight: '900',
+          textTransform: 'uppercase',
+          letterSpacing: '0.1em'
+        }
+      });
+      router.push('/login');
+      return;
+    }
+
     let newQty = 1;
     let targetDbId = null;
 
@@ -139,7 +160,7 @@ export const CartProvider = ({ children }) => {
       await syncItemToDb(product.id, newQty, targetDbId);
     }
     
-    toast.success(`${product.title} added to your vault!`, { icon: '🧺' });
+    toast.success(`${product.title} added to your cart!`, { icon: '🧺' });
   };
 
   const removeFromCart = async (productId) => {
@@ -147,10 +168,10 @@ export const CartProvider = ({ children }) => {
     setCart(prev => prev.filter(item => item.id !== productId));
     
     if (item) {
-      toast.success(`${item.title} removed from vault`, { icon: '🗑️' });
+      toast.success(`${item.title} removed from cart`, { icon: '🗑️' });
     }
 
-    if (user) {
+    if (user && !isAdmin) {
       const query = supabase.from('cart_items').delete();
       if (item?.db_id) {
         await query.eq('id', item.db_id);
@@ -173,14 +194,14 @@ export const CartProvider = ({ children }) => {
       return item;
     }));
 
-    if (user) {
+    if (user && !isAdmin) {
       await syncItemToDb(productId, newQty, targetDbId);
     }
   };
 
   const clearCart = async () => {
     setCart([]);
-    if (user) {
+    if (user && !isAdmin) {
       await supabase
         .from('cart_items')
         .delete()

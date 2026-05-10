@@ -11,10 +11,14 @@ import CartSidebar from './CartSidebar';
 export default function ClientLayout({ children }) {
   const pathname = usePathname();
   
-  // 🛡️ Hide Navbar on Dashboards, Home, and Auth pages for a premium boutique feel
-  const hideNavbar = pathname === '/' || 
-                     pathname?.startsWith('/admin') || 
+  // 🛡️ REUSABLE NAVIGATION STRATEGY: Show navbar on all public pages (including Home)
+  // Only hide on intensive dashboards and auth vaults to maintain focus
+  const hideNavbar = pathname?.startsWith('/admin') || 
+                     pathname?.startsWith('/super-admin') || 
+                     pathname?.startsWith('/seller') || 
                      pathname?.startsWith('/dashboard') || 
+                     pathname?.startsWith('/inventory') || 
+                     pathname?.startsWith('/profile') || 
                      pathname?.startsWith('/login') || 
                      pathname?.startsWith('/register');
 
@@ -25,7 +29,7 @@ export default function ClientLayout({ children }) {
       <Toaster 
         position="top-right"
         toastOptions={{
-          duration: 5000,
+          duration: 2000,
           // 🏛️ CUSTOM PREMIUM THEME
           className: 'premium-toast',
           style: {

@@ -31,11 +31,11 @@ const Sparkline = ({ color }) => (
 
 export default function StatGrid({ stats }) {
   const config = [
-    { label: 'Market Velocity', value: stats.revenue, icon: TrendingUp, color: '#34d399', dot: 'bg-emerald-400' },
-    { label: 'Node Capacity', value: stats.products, icon: Package, color: '#E87C2A', dot: 'bg-[#E87C2A]' },
-    { label: 'Artisan Registry', value: stats.sellers, icon: Store, color: '#fbbf24', dot: 'bg-amber-400' },
-    { label: 'Buyer Network', value: stats.buyers, icon: Users, color: '#60a5fa', dot: 'bg-blue-400' },
-    { label: 'Ops Command', value: stats.managers, icon: Briefcase, color: '#BC6C25', dot: 'bg-[#BC6C25]' }
+    { label: 'Total Revenue', value: stats.revenue, icon: TrendingUp, color: '#1B4332', dot: 'bg-[#1B4332]' },
+    { label: 'Live Products', value: stats.products, icon: Package, color: '#E87C2A', dot: 'bg-[#E87C2A]' },
+    { label: 'Registered Shops', value: stats.sellers, icon: Store, color: '#BC6C25', dot: 'bg-[#BC6C25]' },
+    { label: 'Customer Base', value: stats.buyers, icon: Users, color: '#1B4332', dot: 'bg-[#1B4332]' },
+    { label: 'Staff Members', value: stats.managers, icon: Briefcase, color: '#BC6C25', dot: 'bg-[#BC6C25]' }
   ];
 
   return (
@@ -46,33 +46,33 @@ export default function StatGrid({ stats }) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: i * 0.1 }}
-          className="bg-[#242B29]/60 backdrop-blur-3xl border border-white/5 p-6 rounded-[2rem] hover:bg-white/[0.04] transition-all group relative overflow-hidden shadow-2xl"
+          className="bg-white border border-[#1B4332]/5 p-6 rounded-[2rem] hover:bg-[#FDFBF7] transition-all group relative overflow-hidden shadow-[0_20px_50px_-20px_rgba(27,67,50,0.1)] hover:shadow-[0_30px_60px_-15px_rgba(27,67,50,0.15)]"
         >
            {/* 🎭 STUDIO HOVER BORDER */}
            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#BC6C25] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
            
            <div className="flex justify-between items-start mb-6 relative z-10">
-              <div className="w-11 h-11 bg-white/5 rounded-xl flex items-center justify-center group-hover:bg-[#BC6C25]/10 group-hover:text-[#E87C2A] transition-all duration-500 shadow-xl border border-white/5" style={{ color: stat.color }}>
+              <div className="w-11 h-11 bg-[#1B4332]/5 rounded-xl flex items-center justify-center group-hover:bg-[#BC6C25]/10 group-hover:text-[#E87C2A] transition-all duration-500 shadow-sm border border-[#1B4332]/5" style={{ color: stat.color }}>
                  <stat.icon size={18} className="group-hover:scale-110 transition-transform" />
               </div>
               <div className="flex flex-col items-end gap-0.5">
                  <div className="flex items-center gap-1.5">
                     <div className={`w-1 h-1 rounded-full ${stat.dot} shadow-[0_0_8px_currentColor] animate-pulse`} />
-                    <span className="text-[7px] font-black text-white/20 uppercase tracking-[0.2em]">Node</span>
+                    <span className="text-[7px] font-black text-[#1B4332]/20 uppercase tracking-[0.2em]">Active</span>
                  </div>
-                 <Zap size={8} className="text-white/5" />
+                 <Zap size={8} className="text-[#1B4332]/5" />
               </div>
            </div>
 
            <div className="space-y-1 relative z-10">
-              <p className="text-[8px] font-black uppercase tracking-[0.2em] text-white/30 leading-none truncate">{stat.label}</p>
-              <p className="text-2xl font-black tracking-tighter text-white group-hover:text-[#E87C2A] transition-colors duration-500">{stat.value}</p>
+              <p className="text-[8px] font-black uppercase tracking-[0.2em] text-[#1B4332]/30 leading-none truncate">{stat.label}</p>
+              <p className="text-2xl font-black tracking-tighter text-[#1B4332] group-hover:text-[#E87C2A] transition-colors duration-500">{stat.value}</p>
            </div>
 
            <Sparkline color={stat.color} />
 
            {/* 🧬 AMBIENT DEPTH */}
-           <div className="absolute -bottom-6 -right-6 w-20 h-20 bg-white/[0.02] rounded-full blur-2xl pointer-events-none group-hover:bg-[#BC6C25]/5 transition-all duration-700" />
+           <div className="absolute -bottom-6 -right-6 w-20 h-20 bg-[#1B4332]/[0.02] rounded-full blur-2xl pointer-events-none group-hover:bg-[#BC6C25]/5 transition-all duration-700" />
         </motion.div>
       ))}
     </div>

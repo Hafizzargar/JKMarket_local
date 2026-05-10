@@ -1,7 +1,6 @@
 'use client';
 
 import { useAuth } from '../../context/AuthContext';
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import SovereignLoading from '../ui/SovereignLoading';
 
@@ -12,7 +11,6 @@ import SovereignLoading from '../ui/SovereignLoading';
  */
 export default function AuthGuard({ children, allowedRoles = [] }) {
   const { user, profile, loading, isAdmin } = useAuth();
-  const router = useRouter();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -21,9 +19,11 @@ export default function AuthGuard({ children, allowedRoles = [] }) {
 
   useEffect(() => {
     if (mounted && !loading) {
+      // 🛡️ NATIVE REDIRECTION: Use window.location for stability during early initialization
+      
       // 1. If not logged in, send to login
       if (!user) {
-        router.replace('/login');
+        window.location.replace('/login');
         return;
       }
 
@@ -34,17 +34,15 @@ export default function AuthGuard({ children, allowedRoles = [] }) {
         
         if (!hasAccess) {
           // If no access, redirect to their default home
-          if (userRole === 'customer' || userRole === 'buyer') {
-            router.replace('/products');
-          } else {
-            router.replace('/dashboard');
-          }
+          const target = (userRole === 'customer' || userRole === 'buyer') ? '/products' : 
+                         (userRole === 'admin' || userRole === 'superadmin') ? '/super-admin/dashboard' : '/seller/dashboard';
+          window.location.replace(target);
         }
       }
     }
-  }, [user, profile, loading, isAdmin, router, allowedRoles]);
+  }, [user, profile, loading, isAdmin, allowedRoles, mounted]);
 
-  if (loading) {
+  if (!mounted || loading) {
     return (
       <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center">
         <SovereignLoading message="Authenticating Identity Node" />
@@ -52,8 +50,13 @@ export default function AuthGuard({ children, allowedRoles = [] }) {
     );
   }
 
-  // Only render children if user exists and passes the role check
-  const canRender = user && (allowedRoles.length === 0 || allowedRoles.includes(profile?.role) || (allowedRoles.includes('admin') && isAdmin));
+  // Final check for rendering
+  const userRole = profile?.role;
+  const canRender = user && (
+    allowedRoles.length === 0 || 
+    allowedRoles.includes(userRole) || 
+    (allowedRoles.includes('admin') && isAdmin)
+  );
 
   return canRender ? children : null;
 }

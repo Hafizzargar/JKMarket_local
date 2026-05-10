@@ -32,7 +32,7 @@ export const useStore = create((set, get) => ({
       
       if (error) throw error;
       
-      set({ products: data, lastFetchUser: !!user });
+      set({ products: data || [], lastFetchUser: !!user });
     } catch (error) {
       set({ productsError: error.message });
     } finally {

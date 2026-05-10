@@ -90,9 +90,22 @@ export default function LogisticsAnimation() {
             <span className="mt-3 text-[8px] font-black uppercase tracking-widest text-[#1B4332]/30">Sorting</span>
           </div>
 
-          <div className="relative z-10 flex flex-col items-center">
-            <div className="w-20 h-20 bg-emerald-50/50 border border-emerald-100 rounded-[1.5rem] flex items-center justify-center text-4xl shadow-lg">🏡</div>
-            <span className="mt-3 text-[8px] font-black uppercase tracking-widest text-emerald-800">Doorstep</span>
+          <div className="relative z-10 grid grid-cols-2 gap-8 w-full px-4">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-20 h-20 bg-emerald-50/50 border border-emerald-100 rounded-[1.5rem] flex items-center justify-center text-4xl shadow-lg relative">
+                🏡
+                <div className="absolute -bottom-2 bg-emerald-600 text-white text-[6px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter">Buyer</div>
+              </div>
+              <span className="text-[8px] font-black uppercase tracking-widest text-emerald-800">Doorstep</span>
+            </div>
+
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-20 h-20 bg-orange-50/50 border border-orange-100 rounded-[1.5rem] flex items-center justify-center text-4xl shadow-lg relative">
+                🏬
+                <div className="absolute -bottom-2 bg-orange-600 text-white text-[6px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter">Retail</div>
+              </div>
+              <span className="text-[8px] font-black uppercase tracking-widest text-orange-800">Shop</span>
+            </div>
           </div>
 
           <motion.div variants={mobileVanVariants} animate="animate" className="absolute left-1/2 -translate-x-1/2 top-20 z-20">
@@ -169,11 +182,17 @@ export default function LogisticsAnimation() {
 
           <div className="flex flex-col gap-20 z-20 pr-8">
             <div className="flex items-center gap-6 group/end">
-              <div className="w-24 h-24 bg-white border border-emerald-50 rounded-[2.5rem] flex items-center justify-center text-5xl shadow-xl">🏡</div>
+              <div className="w-24 h-24 bg-white border border-emerald-50 rounded-[2.5rem] flex items-center justify-center text-5xl shadow-xl relative">
+                🏡
+                <div className="absolute -bottom-2 bg-emerald-600 text-white text-[8px] font-black px-4 py-1 rounded-full uppercase tracking-widest shadow-lg">Buyer</div>
+              </div>
               <div className="text-left"><h4 className="text-xl font-black text-[#1B4332]">Doorstep</h4></div>
             </div>
             <div className="flex items-center gap-6 group/end">
-              <div className="w-24 h-24 bg-white border border-orange-50 rounded-[2.5rem] flex items-center justify-center text-5xl shadow-xl">🏬</div>
+              <div className="w-24 h-24 bg-white border border-orange-50 rounded-[2.5rem] flex items-center justify-center text-5xl shadow-xl relative">
+                🏬
+                <div className="absolute -bottom-2 bg-orange-600 text-white text-[8px] font-black px-4 py-1 rounded-full uppercase tracking-widest shadow-lg">Retail</div>
+              </div>
               <div className="text-left"><h4 className="text-xl font-black text-[#1B4332]">Retail</h4></div>
             </div>
           </div>

@@ -56,7 +56,7 @@ export default function CareersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7]">
+    <div className="min-h-screen bg-[#FDFBF7] pt-32 sm:pt-40">
       {/* 🏔️ HERO SECTION */}
       <section className="relative py-24 sm:py-32 px-6 overflow-hidden">
         <div className="absolute inset-0 bg-[#1B4332]/[0.02] -skew-y-3 origin-right" />

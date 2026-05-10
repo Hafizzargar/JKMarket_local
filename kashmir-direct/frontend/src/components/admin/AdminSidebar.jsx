@@ -1,107 +1,170 @@
-import { ShieldCheck, LayoutDashboard, Package, Briefcase, Store, Settings, LogOut, Globe, Users, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ShieldCheck, LayoutDashboard, Package, Briefcase, Store, Settings, LogOut, Globe, Users, ChevronLeft, ChevronRight, ShoppingBag } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
 
 export default function AdminSidebar({ activeTab, setActiveTab, stats, signOut, isCollapsed, setIsCollapsed, profile }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const [isMobile, setIsMobile] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 1024;
+      setIsMobile(mobile);
+      if (mobile) setIsCollapsed(true);
+      else setIsCollapsed(false);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   const navItems = [
-    { id: 'overview', label: 'God Mode View', icon: LayoutDashboard },
-    { id: 'products', label: 'Submissions', icon: Package, count: stats.pending },
-    { id: 'managers', label: 'Operations', icon: Briefcase },
-    { id: 'careers', label: 'Recruitment', icon: Users },
-    { id: 'artisans', label: 'Artisan Registry', icon: Store },
-    { id: 'settings', label: 'System Logic', icon: Settings }
+    { id: 'overview', label: 'Dashboard', icon: LayoutDashboard, path: '/super-admin/dashboard' },
+    { id: 'products', label: 'Inventory', icon: Package, count: stats?.pending, path: '/super-admin/products' },
+    { id: 'managers', label: 'Staff', icon: Briefcase, path: '/super-admin/staff' },
+    { id: 'careers', label: 'Careers', icon: Users, path: '/super-admin/careers' },
+    { id: 'artisans', label: 'Shops', icon: Store, path: '/super-admin/artisans' },
+    { id: 'users', label: 'Users', icon: Globe, path: '/super-admin/users' },
+    { id: 'settings', label: 'Settings', icon: Settings, path: '/super-admin/settings' }
   ];
 
   return (
-    <aside className={`${isCollapsed ? 'w-20' : 'w-64'} bg-[#1A2220] border-r border-white/5 flex flex-col h-screen sticky top-0 shrink-0 transition-all duration-500 relative group/sidebar z-[60]`}>
-      <div className="p-6 flex items-center justify-between">
-         <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-[#BC6C25] rounded-xl flex items-center justify-center shadow-lg shadow-[#BC6C25]/20">
-               <ShieldCheck size={18} className="text-white" />
-            </div>
-            {!isCollapsed && (
-              <div className="flex flex-col">
-                <span className="text-[12px] font-black text-white uppercase tracking-tighter leading-none">Command</span>
-                <span className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em] mt-1">Terminal</span>
-              </div>
-            )}
-         </div>
-         <button 
-           onClick={() => setIsCollapsed(!isCollapsed)}
-           className="w-6 h-6 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-all hover:bg-[#BC6C25] hover:border-[#BC6C25]"
-         >
-           {isCollapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
-         </button>
-      </div>
+    <>
+      {/* 🌑 MOBILE BACKDROP */}
+      <AnimatePresence>
+        {!isCollapsed && isMobile && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsCollapsed(true)}
+            className="fixed inset-0 bg-[#1B4332]/40 backdrop-blur-sm z-[75] lg:hidden"
+          />
+        )}
+      </AnimatePresence>
 
-      <nav className="flex-1 px-4 py-6 space-y-2">
-        {navItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => setActiveTab(item.id)}
-            className={`w-full flex items-center gap-4 p-3.5 rounded-xl transition-all group relative ${
-              activeTab === item.id 
-                ? 'bg-[#BC6C25]/10 text-white' 
-                : 'text-white/40 hover:bg-white/[0.03] hover:text-white/60'
-            }`}
+      <AnimatePresence mode="wait">
+        {(isCollapsed === false || !isMobile) && (
+          <motion.aside 
+            key="admin-sidebar"
+            initial={isMobile ? { x: -300 } : { width: isCollapsed ? 80 : 256 }}
+            animate={{ 
+              x: 0,
+              width: isCollapsed ? 80 : 256 
+            }}
+            exit={isMobile ? { x: -300 } : { opacity: 0 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed lg:sticky top-0 left-0 h-screen bg-[#FDFBF7] border-r border-[#1B4332]/5 flex flex-col shrink-0 z-[80] lg:z-50 shadow-2xl lg:shadow-none overflow-hidden"
           >
-            <item.icon size={18} className={activeTab === item.id ? 'text-[#BC6C25]' : 'group-hover:text-white transition-colors'} />
-            {!isCollapsed && <span className="text-[10px] font-black uppercase tracking-widest">{item.label}</span>}
-            {!isCollapsed && item.count > 0 && (
-              <span className="ml-auto bg-[#BC6C25] text-white text-[8px] font-black px-1.5 py-0.5 rounded-md shadow-lg shadow-[#BC6C25]/20">{item.count}</span>
-            )}
-            {activeTab === item.id && (
-              <motion.div layoutId="activeNav" className="absolute left-0 w-1 h-6 bg-[#BC6C25] rounded-r-full" />
-            )}
-          </button>
-        ))}
-      </nav>
+            <div className="p-6 flex items-center justify-between">
+               <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-[#BC6C25] rounded-xl flex items-center justify-center shadow-lg shadow-[#BC6C25]/20">
+                     <ShieldCheck size={18} className="text-white" />
+                  </div>
+                  {!isCollapsed && (
+                    <div className="flex flex-col">
+                      <span className="text-[12px] font-black text-[#1B4332] uppercase tracking-tighter leading-none">Admin Panel</span>
+                      <span className="text-[8px] font-black text-[#1B4332]/20 uppercase tracking-[0.2em] mt-1">Management</span>
+                    </div>
+                  )}
+               </div>
+               <button 
+                 onClick={() => setIsCollapsed(!isCollapsed)}
+                 className="w-6 h-6 rounded-full bg-[#1B4332]/5 border border-[#1B4332]/10 flex items-center justify-center text-[#1B4332]/40 hover:text-[#1B4332] transition-all hover:bg-[#BC6C25] hover:border-[#BC6C25] hover:text-white"
+               >
+                 {isCollapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+               </button>
+            </div>
 
-      <div className="p-6 border-t border-white/5">
-         {!isCollapsed && (
-           <button 
-             onClick={() => setActiveTab('profile')}
-             className="w-full text-left transition-transform active:scale-95 group/identity"
-           >
-             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white/[0.02] p-4 rounded-2xl mb-6 border border-white/5 group-hover/identity:bg-white/[0.05] group-hover/identity:border-[#BC6C25]/20 transition-all">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-[7px] font-black uppercase tracking-widest text-[#BC6C25]">Sovereign Node</p>
-                  <span className="text-[6px] px-1.5 py-0.5 rounded bg-[#BC6C25]/20 text-[#BC6C25] font-black uppercase">Super Admin</span>
-                </div>
-                <p className="text-[10px] font-black text-white/80 truncate uppercase tracking-tighter group-hover/identity:text-white transition-colors">{profile?.full_name || 'Administrator'}</p>
-                <p className="text-[8px] font-medium text-white/20 truncate italic mt-0.5">{profile?.email || 'secure.access@kashmir.direct'}</p>
-             </motion.div>
-           </button>
-         )}
-         <button 
-            disabled={isLoggingOut}
-            onClick={async () => {
-                if (isLoggingOut) return;
-                setIsLoggingOut(true);
-                const toastId = toast.loading('Terminating Sovereign Session...');
-                try {
-                   await signOut();
-                   toast.success('Session Terminated', { id: toastId });
-                   router.push('/');
-                } catch (err) {
-                   console.error('Logout Failure:', err);
-                   toast.error('Session purge failed, forcing exit.', { id: toastId });
-                   router.push('/');
-                } finally {
-                   setIsLoggingOut(false);
-                }
-            }} 
-            className={`flex items-center gap-3 text-rose-500/40 hover:text-rose-400 font-black text-[8px] uppercase tracking-widest transition-colors ${isCollapsed ? 'justify-center w-full' : 'px-2'} ${isLoggingOut ? 'opacity-50 cursor-not-allowed' : ''}`}
-            title={isCollapsed ? 'Terminate Session' : ''}
-         >
-            <LogOut size={14} /> 
-            {!isCollapsed && <span>Terminate</span>}
-         </button>
-      </div>
-    </aside>
+            <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto no-scrollbar">
+              {navItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    router.push(item.path);
+                    if (isMobile) setIsCollapsed(true);
+                  }}
+                  className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all group relative ${
+                    pathname === item.path
+                      ? 'bg-[#BC6C25] text-white shadow-xl shadow-[#BC6C25]/20' 
+                      : 'text-[#1B4332]/40 hover:bg-[#1B4332]/[0.03] hover:text-[#1B4332]/60'
+                  }`}
+                >
+                  <item.icon size={16} className={pathname === item.path ? 'text-white' : 'group-hover:text-[#1B4332] transition-colors'} />
+                  {!isCollapsed && (
+                    <span className="text-[8px] font-black uppercase tracking-[0.15em] whitespace-nowrap truncate">
+                      {item.label}
+                    </span>
+                  )}
+                  {!isCollapsed && item.count > 0 && (
+                    <span className={`ml-auto ${pathname === item.path ? 'bg-white text-[#BC6C25]' : 'bg-[#BC6C25] text-white'} text-[8px] font-black px-1.5 py-0.5 rounded-md shadow-lg shadow-[#BC6C25]/20`}>{item.count}</span>
+                  )}
+                  {pathname === item.path && (
+                    <motion.div layoutId="activeNav" className="absolute left-0 w-1 h-6 bg-white rounded-r-full" />
+                  )}
+                </button>
+              ))}
+            </nav>
+
+            <div className="p-6 border-t border-[#1B4332]/5 space-y-4">
+               {!isCollapsed && (
+                 <button 
+                   onClick={() => {
+                     router.push('/super-admin/settings');
+                     if (isMobile) setIsCollapsed(true);
+                   }}
+                   className="w-full text-left transition-transform active:scale-95 group/identity"
+                 >
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`p-3 rounded-2xl border transition-all flex items-center gap-3 ${pathname === '/super-admin/settings' ? 'bg-[#BC6C25]/10 border-[#BC6C25]/20' : 'bg-[#1B4332]/[0.02] border-[#1B4332]/5 group-hover/identity:bg-[#1B4332]/[0.05] group-hover/identity:border-[#BC6C25]/20'}`}>
+                      <div className="w-8 h-8 rounded-lg bg-[#BC6C25] flex items-center justify-center text-white text-[10px] font-black overflow-hidden shrink-0">
+                        {profile?.avatar_url || profile?.profile_image ? (
+                          <img src={profile.avatar_url || profile.profile_image} className="w-full h-full object-cover" />
+                        ) : (
+                          profile?.full_name?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'AD'
+                        )}
+                      </div>
+                      <div className="flex-1 truncate">
+                        <p className="text-[9px] font-black text-[#1B4332] truncate uppercase tracking-tighter leading-none">{profile?.full_name?.split(' ')[0] || 'Admin'}</p>
+                        <p className="text-[7px] font-black text-[#BC6C25] uppercase tracking-widest mt-1">Admin</p>
+                      </div>
+                    </motion.div>
+                 </button>
+               )}
+
+               <div className="space-y-1">
+                 <button 
+                   onClick={async () => {
+                     if (isLoggingOut) return;
+                     setIsLoggingOut(true);
+                     const toastId = toast.loading('Terminating Session...');
+                     try {
+                        await signOut();
+                        toast.success('Session Terminated', { id: toastId });
+                        window.location.replace('/');
+                     } catch (err) {
+                        console.error('Logout Failure:', err);
+                        toast.error('Sync Error, Forcing Exit', { id: toastId });
+                        window.location.replace('/');
+                     } finally {
+                        setIsLoggingOut(false);
+                     }
+                   }}
+                   disabled={isLoggingOut}
+                   className="w-full flex items-center gap-4 p-3.5 rounded-xl text-rose-600/40 hover:bg-rose-500/5 hover:text-rose-600 transition-all uppercase text-[10px] font-black tracking-widest"
+                 >
+                   <LogOut size={18} />
+                   {!isCollapsed && <span>Logout</span>}
+                 </button>
+               </div>
+            </div>
+          </motion.aside>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

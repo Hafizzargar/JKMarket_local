@@ -24,8 +24,8 @@ export default function ProductCard({ product }) {
   } = product;
 
   const displayImage = images && images.length > 0 ? images[0] : null;
-  const { user } = useAuth();
-  const { cart, addToCart } = useCart();
+  const { user, isAdmin, profile } = useAuth();
+  const { cart, addToCart, updateQuantity, removeFromCart } = useCart();
   const { wishlist, toggleWishlist } = useStore();
   const router = useRouter();
   const [adding, setAdding] = useState(false);
@@ -34,20 +34,46 @@ export default function ProductCard({ product }) {
   const cartItem = cart?.find(item => item.id === product.id);
   const quantity = cartItem?.quantity || 0;
 
+  // 🛡️ ACTION GATE: Only allow buyers to interact with cart/wishlist
+  const isAuthorizedBuyer = user && !isAdmin && (profile?.role === 'customer' || profile?.role === 'buyer');
+
   const handleWishlist = () => {
-    if (!user) {
-      toast.error('Identity Verification Required to Wishlist', { icon: '🛡️' });
+    if (!isAuthorizedBuyer) {
+      toast.error('Please login as a buyer to save items.', { 
+        id: 'wishlist-gate',
+        style: {
+          background: '#1B4332',
+          color: '#fff',
+          borderRadius: '1rem',
+          fontSize: '11px',
+          fontWeight: '900',
+          textTransform: 'uppercase',
+          letterSpacing: '0.1em'
+        }
+      });
+      router.push('/login');
       return;
     }
     toggleWishlist(product);
     if (!isInWishlist) {
-      toast.success('Treasure Added to Wishlist', { icon: '❤️' });
+      toast.success('Added to wishlist', { icon: '❤️' });
     }
   };
 
   const handleAddToCart = async () => {
-    if (!user) {
-      toast.error('Please login to add items to your cart.', { icon: '🛡️' });
+    if (!isAuthorizedBuyer) {
+      toast.error('Please login as a buyer to add to cart.', { 
+        id: 'cart-gate',
+        style: {
+          background: '#1B4332',
+          color: '#fff',
+          borderRadius: '1rem',
+          fontSize: '11px',
+          fontWeight: '900',
+          textTransform: 'uppercase',
+          letterSpacing: '0.1em'
+        }
+      });
       router.push('/login');
       return;
     }
@@ -58,8 +84,6 @@ export default function ProductCard({ product }) {
       setAdding(false);
     }, 600);
   };
-
-  const { updateQuantity, removeFromCart } = useCart();
 
   const handleDecrement = () => {
     if (quantity > 1) {

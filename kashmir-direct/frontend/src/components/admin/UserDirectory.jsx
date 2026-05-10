@@ -18,20 +18,6 @@ export default function UserDirectory({ users }) {
       {/* 🎭 AMBIENT DEPTH */}
       <div className="absolute bottom-0 left-0 w-[40%] h-[40%] bg-[#BC6C25]/5 blur-[120px] pointer-events-none" />
 
-      <div className="p-12 border-b border-white/5 flex justify-between items-center relative z-10">
-         <div>
-            <h3 className="text-3xl font-black tracking-tighter uppercase italic text-white leading-none">System Directory</h3>
-            <div className="flex items-center gap-3 mt-3">
-               <div className="w-1.5 h-1.5 bg-[#BC6C25] rounded-full shadow-[0_0_10px_#BC6C25]" />
-               <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">Global Identity Registry • Active Records</p>
-            </div>
-         </div>
-         <div className="px-5 py-3 bg-white/5 rounded-2xl border border-white/5 flex items-center gap-3">
-            <Fingerprint size={14} className="text-[#BC6C25] animate-pulse" />
-            <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">Biometric Sync: OK</span>
-         </div>
-      </div>
-
       <div className="overflow-x-auto relative z-10">
         <table className="w-full text-left">
            <thead>
@@ -50,8 +36,8 @@ export default function UserDirectory({ users }) {
                             <User size={20} />
                          </div>
                          <div className="space-y-1">
-                            <p className="text-xl font-black tracking-tight text-white/90 group-hover/row:text-white transition-colors">{u.full_name || 'Anonymous Phantom'}</p>
-                            <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">{u.email}</p>
+                            <p className="text-[14px] font-black tracking-tight text-white/90 group-hover/row:text-white transition-colors">{u.full_name || 'Anonymous Phantom'}</p>
+                            <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest">{u.email}</p>
                          </div>
                       </div>
                    </td>

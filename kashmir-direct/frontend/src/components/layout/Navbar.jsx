@@ -5,36 +5,33 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
-import { ShoppingBag, Heart } from 'lucide-react';
+import { ShoppingBag, Heart, User, LogOut, LayoutDashboard, ShieldCheck, Menu, X } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import Button from '../ui/Button';
 import Logo from '../ui/Logo';
 import UserNode from '../ui/UserNode';
+import { usePathname } from 'next/navigation';
 
 export default function Navbar() {
   const { user, profile, isAdmin, signOut, loading } = useAuth();
   const { wishlist } = useStore();
   const { cartCount, setIsOpen } = useCart();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
+  // 🛡️ SOVEREIGN SCROLL LOCK: Prevent background scrolling when mobile menu is active
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const menuVariants = {
-    closed: { opacity: 0, y: -20, transition: { duration: 0.3 } },
-    open: { 
-      opacity: 1, 
-      y: 0, 
-      transition: { duration: 0.5, staggerChildren: 0.1, delayChildren: 0.1 } 
+    if (isMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
     }
-  };
-
-  const itemVariants = {
-    closed: { opacity: 0, x: -10 },
-    open: { opacity: 1, x: 0 }
-  };
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [isMenuOpen]);
+  const pathname = usePathname();
+  
+  // 🛡️ SECURITY GATE: Hide navbar on dashboards
+  const isDashboard = pathname?.startsWith('/dashboard') || pathname?.startsWith('/admin');
+  if (isDashboard) return null;
 
   const navLinks = [
     { name: 'Products', href: '/products' },
@@ -43,258 +40,163 @@ export default function Navbar() {
     { name: 'Careers', href: '/careers' }
   ];
 
-  return (
-    <motion.nav 
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className={`${isMenuOpen ? 'bg-[#FDFBF7]' : 'bg-[#FDFBF7]/80 backdrop-blur-xl'} border-b border-[#1B4332]/5 sticky top-0 z-50`}
-    >
-      <div className="max-w-7xl mx-auto px-6 sm:px-8">
-        <div className="flex justify-between h-20 sm:h-24 items-center">
-          <div className="flex items-center">
-            <Link 
-              href={
-                isAdmin ? "/admin/dashboard" : 
-                (profile?.role === 'seller' || profile?.role === 'shopkeeper') ? "/dashboard" : 
-                user ? "/products" : "/"
-              } 
-              className="flex-shrink-0 hover:opacity-80 transition-opacity"
-            >
-              <Logo className="h-10 sm:h-12 w-auto" />
-            </Link>
-          </div>
+  // 🛡️ INDEPENDENT SESSION STRATEGY: Hide Super Admin visibility on the storefront
+  // We treat the storefront as a public space where Admin identity doesn't exist.
+  // We show the 'Logged In' view ONLY for regular buyers.
+  const showBuyerAuth = user && !isAdmin && (profile?.role === 'customer' || profile?.role === 'buyer');
 
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-12">
-            {!isAdmin && (
-              <div className="flex space-x-10">
-                {navLinks
-                  .filter(link => {
-                    // Hide 'Journal' and 'Careers' from all members (logged in users)
-                    if (user && (link.name === 'Journal' || link.name === 'Careers')) return false;
-                    return true;
-                  })
-                  .map((link) => (
+  return (
+    <div className="fixed top-0 left-0 right-0 z-50 flex justify-center px-4 sm:px-8 py-6 pointer-events-none">
+       <header className="w-full max-w-7xl h-16 bg-white/70 backdrop-blur-2xl border border-white/20 rounded-full flex items-center justify-between px-6 sm:px-10 shadow-[0_8px_32px_rgba(27,67,50,0.08)] transition-all duration-500 hover:shadow-[0_12px_48px_rgba(27,67,50,0.12)] pointer-events-auto">
+          
+          {/* 🏔️ BRAND & NAV HUB */}
+          <div className="flex items-center gap-6 sm:gap-10">
+             <Link href="/" className="hover:opacity-70 transition-opacity flex items-center gap-4 shrink-0">
+                <Logo className="h-8 sm:h-9" />
+             </Link>
+             
+             <nav className="hidden lg:flex items-center gap-6 sm:gap-8 border-l border-[#1B4332]/5 pl-6 sm:pl-8">
+                {navLinks.map((item) => (
                   <Link 
-                    key={link.name}
-                    href={link.href} 
-                    className="text-[10px] font-black uppercase tracking-[0.3em] text-[#1B4332]/40 hover:text-[#1B4332] transition-all"
+                    key={item.name} 
+                    href={item.href} 
+                    className={`text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] transition-colors whitespace-nowrap ${
+                      pathname === item.href ? 'text-[#1B4332]' : 'text-[#1B4332]/40 hover:text-[#1B4332]'
+                    }`}
                   >
-                    {link.name}
+                    {item.name}
                   </Link>
                 ))}
-              </div>
-            )}
+             </nav>
+          </div>
 
-            {mounted && !isAdmin && <div className="h-6 w-px bg-[#1B4332]/10" />}
-
-            <div className="flex items-center space-x-8">
-              {/* 🧺 CART NODE */}
-              {mounted && user && !isAdmin && (
-                <div className="flex items-center space-x-4">
+          {/* 🛡️ UTILITY HUB */}
+          <div className="flex items-center gap-4 sm:gap-8">
+             <div className="flex items-center gap-4 sm:gap-6">
+                {/* 🛒 CART TRIGGER - Reserved exclusively for authenticated Buyers */}
+                {showBuyerAuth && (
                   <button 
                     onClick={() => setIsOpen(true)}
-                    className="relative group p-2 hover:bg-[#1B4332]/5 rounded-xl transition-all"
+                    className="relative p-2 text-[#1B4332]/60 hover:text-[#1B4332] transition-colors group"
                   >
-                    <ShoppingBag size={20} className="text-[#1B4332]/40 group-hover:text-[#1B4332]" />
+                    <ShoppingBag size={20} strokeWidth={2.5} />
                     {cartCount > 0 && (
-                      <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#BC6C25] text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-lg border-2 border-[#FDFBF7]">
+                      <span className="absolute top-0 right-0 w-4 h-4 bg-[#BC6C25] text-white text-[8px] font-black rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                         {cartCount}
                       </span>
                     )}
                   </button>
+                )}
 
-                  <Link 
-                    href="/wishlist"
-                    className="relative group p-2 hover:bg-[#1B4332]/5 rounded-xl transition-all"
-                  >
-                    <Heart size={20} className="text-[#1B4332]/40 group-hover:text-[#1B4332]" />
-                    {wishlist.length > 0 && (
-                      <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#1B4332] text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-lg border-2 border-[#FDFBF7]">
-                        {wishlist.length}
-                      </span>
-                    )}
-                  </Link>
-                </div>
-              )}
-
-              {!mounted ? (
-                <div className="w-20 h-8 bg-[#1B4332]/5 animate-pulse rounded-full" />
-              ) : user ? (
-                <>
-                  <Link href="/setting/profile" className="mr-6 transition-transform active:scale-95">
-                    <UserNode />
-                  </Link>
-                  {isAdmin ? (
-                    <div className="flex items-center gap-8">
-                      <Link href="/admin/dashboard" className="text-[10px] font-black uppercase tracking-[0.3em] text-[#BC6C25] hover:opacity-70">
-                        Admin Command Center
-                      </Link>
-                      <button 
-                        onClick={async () => {
-                          await signOut();
-                          window.location.replace('/');
-                        }} 
-                        className="text-[10px] font-black uppercase tracking-[0.3em] text-red-600/40 hover:text-red-600"
-                      >
-                        Exit Portal
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      {(profile?.role === 'seller' || profile?.role === 'shopkeeper') && (
-                        <Link href="/dashboard" className="text-[10px] font-black uppercase tracking-[0.3em] text-[#1B4332]/40 hover:text-[#1B4332]">Dashboard</Link>
-                      )}
-                      <button 
-                        onClick={async () => {
-                          await signOut();
-                          window.location.replace('/');
-                        }} 
-                        className="text-[10px] font-black uppercase tracking-[0.3em] text-red-600/40 hover:text-red-600"
-                      >
-                        Sign Out
-                      </button>
-                    </>
-                  )}
-                </>
-              ) : (
-                <>
-                  <Link href="/login" className="text-[10px] font-black uppercase tracking-[0.3em] text-[#1B4332]/40 hover:text-[#1B4332]">Login</Link>
-                  <Link href="/register" className="text-[10px] font-black uppercase tracking-[0.3em] text-[#BC6C25] hover:opacity-70">Join as Buyer</Link>
-                  <Link href="/register">
-                    <Button size="sm">Join Registry</Button>
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Mobile Menu Button */}
-          <div className="lg:hidden">
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-[#1B4332] p-3 rounded-2xl bg-white/50 border border-[#1B4332]/5"
-            >
-              {isMenuOpen ? (
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              ) : (
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 8h16M4 16h16" />
-                </svg>
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {isMenuOpen && (
-          <motion.div 
-            variants={menuVariants}
-            initial="closed"
-            animate="open"
-            exit="closed"
-            className="lg:hidden fixed inset-x-0 top-20 bottom-0 bg-gradient-to-b from-[#FDFBF7] to-[#F5F1E6] z-[999] px-8 pt-12 pb-20 flex flex-col justify-between shadow-2xl opacity-100"
-          >
-            {/* Identity Node at Top */}
-            {user && (
-              <motion.div variants={itemVariants} className="mb-12">
-                <Link href="/setting/profile" className="flex items-center gap-4 bg-[#1B4332]/5 p-4 rounded-3xl border border-[#1B4332]/5" onClick={() => setIsMenuOpen(false)}>
-                  <UserNode size="md" />
-                  <div className="flex flex-col">
-                    <span className="text-[8px] font-black uppercase text-[#1B4332]/40 tracking-widest leading-none mb-1">Identity Profile</span>
-                    <span className="text-xs font-black text-[#1B4332] uppercase tracking-wider">Configure Settings</span>
-                  </div>
-                </Link>
-              </motion.div>
-            )}
-
-            {/* Navigation Links */}
-            <div className="flex-1 space-y-8">
-              {isAdmin ? (
-                <motion.div variants={itemVariants}>
-                  <Link 
-                    href="/admin/dashboard" 
-                    onClick={() => setIsMenuOpen(false)}
-                    className="text-2xl font-black text-[#BC6C25] tracking-tight uppercase"
-                  >
-                    Command Center
-                  </Link>
-                </motion.div>
-              ) : (
-                <>
-                  {navLinks
-                    .filter(link => {
-                      if (user && (link.name === 'Journal' || link.name === 'Careers')) return false;
-                      return true;
-                    })
-                    .map(link => (
-                    <motion.div key={link.name} variants={itemVariants}>
-                      <Link 
-                        href={link.href} 
-                        onClick={() => setIsMenuOpen(false)}
-                        className="text-sm font-black text-[#1B4332] tracking-[0.3em] uppercase"
-                      >
-                        {link.name}
-                      </Link>
-                    </motion.div>
-                  ))}
-                </>
-              )}
-            </div>
-            
-            {/* Action Footer */}
-            <motion.div variants={itemVariants} className="pt-8 border-t border-[#1B4332]/5 flex flex-col space-y-6">
-              {!mounted ? (
-                <div className="w-full h-12 bg-[#1B4332]/5 animate-pulse rounded-3xl" />
-              ) : user ? (
-                <>
-                  {!isAdmin && (profile?.role === 'seller' || profile?.role === 'shopkeeper') && (
-                    <Link 
-                      href="/dashboard" 
-                      onClick={() => setIsMenuOpen(false)}
-                      className="text-sm font-black text-[#1B4332] uppercase tracking-[0.3em] flex items-center justify-between"
-                    >
-                      Artisan Dashboard
-                      <div className="w-2 h-2 rounded-full bg-[#BC6C25]" />
+                {/* 👤 AUTHENTICATION HUB - Admin identity is hidden from storefront */}
+                {!showBuyerAuth ? (
+                  <div className="hidden sm:flex items-center gap-4 sm:gap-6">
+                    <Link href="/login" className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] text-[#1B4332]/40 hover:text-[#1B4332] transition-colors">
+                      Login
                     </Link>
-                  )}
-                  <button 
-                    onClick={async () => {
-                      setIsMenuOpen(false);
-                      await signOut();
-                      window.location.replace('/');
-                    }} 
-                    className="w-full h-14 rounded-2xl bg-rose-500/5 text-rose-500 text-[10px] font-black uppercase tracking-[0.3em] border border-rose-500/10 hover:bg-rose-500/10 transition-all flex items-center justify-center"
-                  >
-                    Secure Sign Out
-                  </button>
-                </>
-              ) : (
-                <div className="grid grid-cols-2 gap-4">
-                  <Link 
-                    href="/login" 
-                    onClick={() => setIsMenuOpen(false)}
-                    className="h-14 rounded-2xl bg-[#1B4332]/5 text-[#1B4332] text-[10px] font-black uppercase tracking-[0.3em] flex items-center justify-center border border-[#1B4332]/5"
-                  >
-                    Log In
-                  </Link>
-                  <Link 
-                    href="/register" 
-                    onClick={() => setIsMenuOpen(false)}
-                    className="h-14 rounded-2xl bg-[#1B4332] text-white text-[10px] font-black uppercase tracking-[0.3em] flex items-center justify-center shadow-lg shadow-[#1B4332]/10"
-                  >
-                    Join
-                  </Link>
-                </div>
-              )}
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.nav>
+                    <Link href="/register?type=seller">
+                      <Button 
+                        size="sm" 
+                        className="h-9 sm:h-11 px-6 sm:px-10 text-[10px] sm:text-[11px] rounded-full uppercase tracking-[0.2em] font-black bg-[#1B4332] text-white shadow-[0_8px_20px_rgba(27,67,50,0.15)] hover:shadow-[0_12px_28px_rgba(27,67,50,0.25)] hover:-translate-y-0.5 transition-all duration-300 relative overflow-hidden group"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                        <span className="relative z-10">Join Us</span>
+                      </Button>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="hidden sm:flex items-center gap-4 border-l border-[#1B4332]/5 pl-4 sm:pl-6">
+                    <Link 
+                      href="/dashboard"
+                      className="items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#1B4332]/40 hover:text-[#1B4332] transition-colors"
+                    >
+                      <LayoutDashboard size={14} />
+                      <span className="hidden xl:block">Account Hub</span>
+                    </Link>
+                    <div className="w-8 h-8 rounded-full border border-[#1B4332]/10 overflow-hidden shadow-sm">
+                      <UserNode size="sm" />
+                    </div>
+                  </div>
+                )}
+
+                {/* 📱 MOBILE MENU TRIGGER */}
+                <button 
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  className="lg:hidden p-2 text-[#1B4332] hover:bg-[#1B4332]/5 rounded-xl transition-colors"
+                >
+                  {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                </button>
+             </div>
+          </div>
+       </header>
+
+       {/* 📱 MOBILE NAVIGATION DRAWER */}
+       <AnimatePresence>
+         {isMenuOpen && (
+           <motion.div 
+             initial={{ opacity: 0, y: -20, scale: 0.95 }}
+             animate={{ opacity: 1, y: 0, scale: 1 }}
+             exit={{ opacity: 0, y: -20, scale: 0.95 }}
+             className="absolute top-24 left-4 right-4 bg-white/98 backdrop-blur-3xl rounded-[3rem] border border-[#1B4332]/10 shadow-2xl p-10 lg:hidden z-40 overflow-hidden pointer-events-auto"
+           >
+              <div className="bg-organic-mesh absolute inset-0 opacity-10 pointer-events-none" />
+              <div className="relative z-10 flex flex-col h-full">
+                 {/* Navigation Links */}
+                 <div className="space-y-8 mb-16">
+                    {navLinks.map((item) => (
+                      <Link 
+                        key={item.name} 
+                        href={item.href} 
+                        onClick={() => setIsMenuOpen(false)}
+                        className="block text-2xl font-black text-[#1B4332] tracking-tighter hover:text-[#BC6C25] transition-colors"
+                      >
+                        {item.name}
+                      </Link>
+                    ))}
+                 </div>
+
+                 {/* 👤 AUTHENTICATION HUB (MOBILE) - Admin identity hidden */}
+                 <div className="pt-10 border-t border-[#1B4332]/5 space-y-8">
+                    {!showBuyerAuth ? (
+                      <div className="space-y-6">
+                        <div className="flex items-center justify-between">
+                           <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#1B4332]/30">Member Portal</span>
+                           <Link 
+                             href="/login" 
+                             onClick={() => setIsMenuOpen(false)}
+                             className="text-[11px] font-black uppercase tracking-widest text-[#BC6C25] hover:opacity-70"
+                           >
+                             Sign In &rarr;
+                           </Link>
+                        </div>
+                        <Link href="/register" onClick={() => setIsMenuOpen(false)}>
+                          <Button className="w-full h-14 rounded-[2rem] text-xs font-black uppercase tracking-[0.2em] bg-[#1B4332] text-white shadow-2xl shadow-[#1B4332]/20">
+                            Join Us
+                          </Button>
+                        </Link>
+                      </div>
+                    ) : (
+                      <Link 
+                        href="/dashboard" 
+                        onClick={() => setIsMenuOpen(false)}
+                        className="flex items-center justify-between p-6 rounded-3xl bg-[#1B4332]/5 group"
+                      >
+                         <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-full bg-[#1B4332] text-white flex items-center justify-center">
+                               <User size={20} />
+                            </div>
+                            <span className="font-black uppercase tracking-widest text-[10px] text-[#1B4332]">My Account Hub</span>
+                         </div>
+                         <div className="w-8 h-8 rounded-full border border-[#1B4332]/10 overflow-hidden">
+                            <UserNode size="sm" />
+                         </div>
+                      </Link>
+                    )}
+                 </div>
+              </div>
+           </motion.div>
+         )}
+       </AnimatePresence>
+    </div>
   );
 }
