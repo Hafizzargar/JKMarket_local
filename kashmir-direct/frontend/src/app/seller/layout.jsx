@@ -11,6 +11,7 @@ import {
   LayoutDashboard, ShoppingCart, BarChart3
 } from 'lucide-react';
 import AuthGuard from '@/components/auth/AuthGuard';
+import SovereignLoading from '@/components/ui/SovereignLoading';
 
 export default function SellerLayout({ children }) {
   const { user, profile, loading, signOut, isAdmin } = useAuth();
@@ -37,10 +38,14 @@ export default function SellerLayout({ children }) {
     if (isMobile) setIsSidebarOpen(false);
   };
 
+  // 🛡️ AUTHENTICATION EXCLUSION: Don't guard the login page
+  const isAuthPage = pathname === '/seller/login';
+  if (isAuthPage) return children;
+
   // 🛡️ SOVEREIGN LOADING
   if (loading && !user) return (
     <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center">
-       <div className="w-12 h-12 border-2 border-[#BC6C25]/20 border-t-[#BC6C25] rounded-full animate-spin" />
+       <SovereignLoading message="Securing Seller Channel" />
     </div>
   );
 
@@ -75,8 +80,8 @@ export default function SellerLayout({ children }) {
                   </div>
                   {isSidebarOpen && (
                     <div className="flex-1">
-                        <span className="text-[12px] font-black uppercase tracking-[0.2em] text-[#1B4332] leading-none">Seller Node</span>
-                        <p className="text-[10px] font-medium text-[#1B4332]/40 tracking-wide">Kashmir Direct</p>
+                        <span className="text-[12px] font-black uppercase tracking-[0.2em] text-[#1B4332] leading-none">Seller Panel</span>
+                        <p className="text-[10px] font-medium text-[#1B4332]/40 tracking-wide">Manage Shop</p>
                     </div>
                   )}
                </div>
@@ -92,11 +97,11 @@ export default function SellerLayout({ children }) {
 
                   <nav className="px-3 space-y-8">
                      <div>
-                        {isSidebarOpen && <p className="text-[9px] font-black uppercase tracking-[0.3em] text-[#1B4332]/20 px-4 mb-4">Management</p>}
+                        {isSidebarOpen && <p className="text-[9px] font-black uppercase tracking-[0.3em] text-[#1B4332]/20 px-4 mb-4">Main Menu</p>}
                         <div className="space-y-1.5">
                             {[
-                              { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/seller/dashboard' },
-                              { id: 'inventory', label: 'Inventory', icon: Package, path: '/seller/inventory' },
+                              { id: 'dashboard', label: 'Overview', icon: LayoutDashboard, path: '/seller/dashboard' },
+                              { id: 'inventory', label: 'My Products', icon: Package, path: '/seller/inventory' },
                             ].map((tab) => (
                               <button key={tab.id} onClick={() => navigate(tab.path)} className={`w-full flex items-center gap-4 rounded-2xl transition-all ${pathname === tab.path ? 'bg-[#BC6C25] text-white shadow-xl' : 'bg-transparent text-[#1B4332]/50 hover:bg-[#1B4332]/5'} ${isSidebarOpen ? 'px-4 py-3' : 'h-12 justify-center'}`}>
                                 <tab.icon size={20} className={pathname === tab.path ? 'text-white' : 'text-[#1B4332]/30'} />
@@ -125,7 +130,7 @@ export default function SellerLayout({ children }) {
                   {isMobile && <button onClick={() => setIsSidebarOpen(true)} className="p-2.5 bg-white border border-[#1B4332]/10 rounded-xl shadow-xl"><Menu size={22} /></button>}
                   <div className="flex items-center gap-2.5 px-4 py-2 bg-[#1B4332]/5 rounded-full border border-[#1B4332]/5">
                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-                     <h2 className="text-[10px] font-black tracking-[0.2em] uppercase text-[#1B4332]/40">Seller Active</h2>
+                     <h2 className="text-[10px] font-black tracking-[0.2em] uppercase text-[#1B4332]/40">Online</h2>
                   </div>
                </div>
                <div className="flex items-center gap-4">

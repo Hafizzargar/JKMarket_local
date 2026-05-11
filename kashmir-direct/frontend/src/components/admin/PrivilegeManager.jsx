@@ -1,108 +1,125 @@
-'use client';
-
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, ShieldOff, AlertOctagon, Calendar, Layers, CheckCircle2, XCircle, ShieldCheck } from 'lucide-react';
+import { Zap, ShieldOff, AlertOctagon, Calendar, Layers, CheckCircle2, XCircle, ShieldCheck, Mail, ArrowLeft } from 'lucide-react';
+import { ForgeModal, ForgeInput, ForgeTextarea, ForgeButton } from './shared/ForgeComponents';
 
 export default function PrivilegeManager({ isOpen, seller, newLimit, newExpiry, isVerified, setModal, onUpdate }) {
+  const [isTerminating, setIsTerminating] = useState(false);
+  const [reason, setReason] = useState('Your account has been terminated due to policy violations. This is a final decision by the Super Admin.');
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center p-8">
-       {/* 🎭 BACKDROP */}
-       <motion.div 
-        initial={{ opacity: 0 }} 
-        animate={{ opacity: 1 }} 
-        exit={{ opacity: 0 }} 
-        onClick={() => setModal({ isOpen: false })} 
-        className="absolute inset-0 bg-black/90 backdrop-blur-2xl" 
-       />
+    <ForgeModal
+      isOpen={isOpen}
+      onClose={() => { setModal({ isOpen: false }); setIsTerminating(false); }}
+      title={isTerminating ? "Terminate Artisan" : "Artisan Governance"}
+      subtitle={seller ? <>Target: <span className="text-[#BC6C25]">{seller.shop_name}</span></> : null}
+      icon={isTerminating ? AlertOctagon : (isVerified ? ShieldCheck : ShieldOff)}
+      footer={
+        !isTerminating ? (
+          <>
+            <ForgeButton 
+              variant="secondary"
+              icon={AlertOctagon}
+              onClick={() => setIsTerminating(true)}
+            >
+               Terminate Access
+            </ForgeButton>
 
-       {/* 🛡️ GOVERNANCE MODAL */}
-       <motion.div 
-        initial={{ scale: 0.95, opacity: 0, y: 20 }} 
-        animate={{ scale: 1, opacity: 1, y: 0 }} 
-        exit={{ scale: 0.95, opacity: 0, y: 20 }} 
-        className="relative bg-[#141A18] w-full max-w-lg rounded-[3rem] p-12 shadow-[0_0_80px_rgba(0,0,0,0.6)] border border-white/5 overflow-hidden"
-       >
-          {/* 🎭 AMBIENT ACCENT */}
-          <div className={`absolute -top-24 -right-24 w-64 h-64 blur-[100px] pointer-events-none opacity-20 ${isVerified ? 'bg-[#BC6C25]' : 'bg-rose-600'}`} />
-
-          <div className="relative z-10 flex flex-col items-center text-center">
-             <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-8 ${isVerified ? 'bg-[#BC6C25]/10 text-[#BC6C25] border-[#BC6C25]/30' : 'bg-rose-600/10 text-rose-500 border-rose-500/30'} border shadow-2xl transition-all duration-500`}>
-                {isVerified ? <ShieldCheck size={36} /> : <ShieldOff size={36} />}
-             </div>
-             
-             <h3 className="text-3xl font-black tracking-tighter uppercase italic text-white leading-none">Artisan Governance</h3>
-             <p className="text-white/20 text-[10px] font-bold uppercase tracking-[0.2em] mt-3 mb-10">Modifying Partition: <span className="text-white/40">{seller?.shop_name}</span></p>
-             
-             <div className="w-full space-y-4 mb-10 text-left">
-                {/* ✅ VERIFICATION TOGGLE */}
-                <div className="flex items-center justify-between p-6 bg-white/[0.03] rounded-2xl border border-white/5 group hover:border-white/10 transition-all">
-                   <div className="flex items-center gap-4">
-                      <div className={`p-2 rounded-lg ${isVerified ? 'text-emerald-500 bg-emerald-500/5' : 'text-rose-500 bg-rose-500/5'}`}>
-                         {isVerified ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
-                      </div>
-                      <span className="text-[10px] font-black uppercase tracking-widest text-white/30">Verification Status</span>
+            <ForgeButton 
+              variant="primary"
+              icon={Zap}
+              onClick={() => onUpdate(false)}
+            >
+               Commit Changes
+            </ForgeButton>
+          </>
+        ) : (
+          <>
+             <ForgeButton 
+               variant="secondary"
+               onClick={() => setIsTerminating(false)}
+             >
+                Cancel
+             </ForgeButton>
+             <ForgeButton 
+               variant="danger"
+               icon={Zap}
+               onClick={() => onUpdate(true, reason)}
+             >
+                Confirm Termination
+             </ForgeButton>
+          </>
+        )
+      }
+    >
+      <AnimatePresence mode="wait">
+        {!isTerminating ? (
+          <motion.div 
+            key="edit" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+            className="space-y-6"
+          >
+             {/* ✅ VERIFICATION TOGGLE */}
+             <div className="flex items-center justify-between p-7 bg-[#1B4332]/[0.02] rounded-3xl border border-[#1B4332]/5 group hover:border-[#1B4332]/10 transition-all">
+                <div className="flex items-center gap-5">
+                   <div className={`p-3 rounded-xl ${isVerified ? 'text-emerald-500 bg-emerald-500/10' : 'text-rose-500 bg-rose-500/10'}`}>
+                      {isVerified ? <CheckCircle2 size={18} /> : <XCircle size={18} />}
                    </div>
-                   <button 
-                      onClick={() => setModal({ isVerified: !isVerified })} 
-                      className={`w-12 h-6 rounded-full relative transition-all duration-500 ${isVerified ? 'bg-emerald-500' : 'bg-rose-500'}`}
-                   >
-                      <motion.div 
-                        animate={{ x: isVerified ? 24 : 4 }}
-                        className="absolute top-1 w-4 h-4 bg-white rounded-full shadow-lg" 
-                      />
-                   </button>
-                </div>
-
-                {/* 🔢 LIMITS & EXPIRY */}
-                <div className="grid grid-cols-2 gap-4">
-                   <div className="bg-white/[0.03] p-5 rounded-2xl border border-white/5 group hover:border-[#BC6C25]/30 transition-all">
-                      <div className="flex items-center gap-2 mb-2 opacity-20 group-hover:opacity-100 transition-opacity">
-                         <Layers size={10} className="text-[#BC6C25]" />
-                         <label className="text-[8px] font-black uppercase tracking-widest text-white">Validation Limit</label>
-                      </div>
-                      <input 
-                        type="number" 
-                        value={newLimit} 
-                        onChange={(e) => setModal({ newLimit: e.target.value })} 
-                        className="w-full bg-transparent border-none text-white text-xl font-black focus:outline-none focus:text-[#BC6C25] transition-colors" 
-                      />
-                   </div>
-                   <div className="bg-white/[0.03] p-5 rounded-2xl border border-white/5 group hover:border-[#BC6C25]/30 transition-all">
-                      <div className="flex items-center gap-2 mb-2 opacity-20 group-hover:opacity-100 transition-opacity">
-                         <Calendar size={10} className="text-[#BC6C25]" />
-                         <label className="text-[8px] font-black uppercase tracking-widest text-white">Cycle Reset</label>
-                      </div>
-                      <input 
-                        type="date" 
-                        value={newExpiry} 
-                        onChange={(e) => setModal({ newExpiry: e.target.value })} 
-                        className="w-full bg-transparent border-none text-white text-[11px] font-black focus:outline-none focus:text-[#BC6C25] transition-colors mt-1" 
-                      />
+                   <div className="flex flex-col">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-[#1B4332]/40 leading-none mb-1">Status</span>
+                      <span className={`text-[12px] font-black uppercase tracking-tighter ${isVerified ? 'text-emerald-600' : 'text-rose-600'}`}>{isVerified ? 'Active & Verified' : 'Access Restricted'}</span>
                    </div>
                 </div>
+                <button 
+                   onClick={() => setModal({ isVerified: !isVerified })} 
+                   className={`w-14 h-7 rounded-full relative transition-all duration-500 ${isVerified ? 'bg-emerald-500' : 'bg-rose-500'} shadow-inner shadow-black/10`}
+                >
+                   <motion.div 
+                     animate={{ x: isVerified ? 30 : 6 }}
+                     className="absolute top-1.5 w-4 h-4 bg-white rounded-full shadow-lg" 
+                   />
+                </button>
              </div>
 
-             <div className="w-full space-y-4">
-                <button 
-                  onClick={() => onUpdate(false)} 
-                  className="w-full h-16 rounded-2xl bg-[#BC6C25] hover:bg-[#E87C2A] text-white font-black tracking-[0.3em] uppercase text-[10px] shadow-2xl shadow-[#BC6C25]/20 transition-all flex items-center justify-center gap-3"
-                >
-                   <Zap size={16} className="fill-white" />
-                   Commit Privileges
-                </button>
-                
-                <button 
-                  onClick={() => { if(confirm('TERMINATE ACCOUNT?')) onUpdate(true); }} 
-                  className="w-full h-14 rounded-2xl bg-white/[0.02] border border-white/5 text-rose-500/40 hover:text-rose-500 hover:bg-rose-500/5 text-[9px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-all"
-                >
-                   <AlertOctagon size={14} /> 
-                   Terminate Access Protocol
-                </button>
+             <div className="grid grid-cols-2 gap-5">
+                <ForgeInput 
+                  label="Product Limit" 
+                  icon={Layers} 
+                  type="number" 
+                  value={newLimit} 
+                  onChange={(e) => setModal({ newLimit: e.target.value })} 
+                />
+                <ForgeInput 
+                  label="Subscription Reset" 
+                  icon={Calendar} 
+                  type="date" 
+                  value={newExpiry} 
+                  onChange={(e) => setModal({ newExpiry: e.target.value })} 
+                />
              </div>
-          </div>
-       </motion.div>
-    </div>
+          </motion.div>
+        ) : (
+          <motion.div 
+            key="terminate" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+            className="space-y-6"
+          >
+             <div className="bg-rose-500/5 border border-rose-500/10 p-6 rounded-2xl flex items-start gap-4">
+                <AlertOctagon size={20} className="text-rose-600 flex-shrink-0 mt-1" />
+                <p className="text-[10px] font-bold text-rose-600 uppercase tracking-widest leading-relaxed">
+                   This action will immediately lock the artisan out of the dashboard and hide all their products from the marketplace.
+                </p>
+             </div>
+
+             <ForgeTextarea 
+                label="Termination Reason (Sent via Email)"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="Detail the reason for this action..."
+             />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </ForgeModal>
   );
 }

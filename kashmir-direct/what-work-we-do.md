@@ -83,19 +83,20 @@ We have expanded the platform with a high-fidelity recruitment architecture:
 *   **Marketplace Parity**: Standardized `ProductCard` components across the marketplace to ensure visual consistency and elite performance.
 *   **Auth-Gated Ecosystem**: Finalized the 'Auth-Gated' cart system and database synchronization between the identity vault and user registry.
 
-### 🗓️ May 11, 2026 - Sovereign Governance Modernization
-- **Sovereign Side Panel**: Transitioned the Governance Inspector from a modal into a high-density, right-hand slide-over panel, providing a permanent administrative audit workspace.
-- **Kinetic Image Mastery**: Implemented a 3-second auto-rotating image carousel with manual "Rapid-Review" controls. Super Admins now have the sovereign power to **directly upload or delete product images** during audits.
-- **Master Editor Command**: Converted all product fields (Title, Category, Price, Weight, Description, and Rating) into editable inputs for the Super Admin, allowing for "Master Fixes" before publication.
-- **Smart Delta Sync**: Integrated change-detection logic that only transmits modified fields (deltas) to the database, optimizing database efficiency during certifications.
-- **Fixed Shell Architecture**: Re-engineered the dashboard into a stationary "Fixed Shell" with internal-scroll table bodies and sticky headers, ensuring perfect administrative focus during high-volume curation.
-- **Dedicated Audit Room**: Built a zero-distraction "Sovereign Audit Room" at `/super-admin/products/approval` for specialized, high-speed product certification.
-
-### 🗓️ May 10, 2026 - Sovereign Separation & Route Hardening
-*   **Registration Forge**: Polished the artisan registration workflow (`register/page.jsx`) for zero-friction onboarding.
-*   **Auth Service Finalization**: Hardened the `AuthService.js` to ensure immutable session persistence and persistent cross-tab state.
-*   **Operational Manifesto**: Initialized and updated the Command Center (`what-work-we-do.md`) to maintain high-fidelity oversight of valley operations.
-
+### 🗓️ May 11, 2026 - Manager Hierarchy & Sync Hardening
+- **Sovereign Sync Engine**: Re-engineered the product certification logic to support dual-column naming (`weight` vs `weight_value`). Resolved the `PGRST204` schema cache error by aligning payload keys with the backend registry.
+- **Zero-Latency Optimistic UI**: Implemented instant local state merging for product approvals and kinetic vault purging for audits. Administrative changes now reflect instantly, with silent background synchronization to Supabase.
+- **Hierarchical Delegation**: Established the "Manager Management" module at `/super-admin/managers`. Implemented a 3-tier delegation structure:
+    - **Listing Manager**: Product certification and audit authority.
+    - **Artisan Manager**: Relationship and account governance.
+    - **Operations Manager**: Logistics, finance, and order fulfillment.
+- **Terminology Simplification (Phase II)**: Continued stripping complex jargon. Renamed "Sovereign Audit Room" to "Check New Products" and "Operations Command Node" to "Manager Management" to ensure maximum operator clarity.
+- **Navigation Fluidity**: Renamed internal directory structure from `/staff` to `/managers` to match user mental models and established dynamic notification badges in the sidebar for pending tasks.
+- **Recruitment Pipeline ("Legacy Forge")**: Completed the end-to-end talent acquisition cycle:
+    - **Job Forge**: Implemented high-fidelity job creation and management with a dedicated "X" close-button and streamlined form UI.
+    - **Public Career Portal**: Revamped `/careers` with dynamic job fetching and a high-fidelity "Apply Node" modal for candidate intake.
+    - **Application Command**: Built the `ApplicationForge` in the Super Admin panel with a dual-tab system for seamless switching between Job Board and Incoming Applications.
+    - **Sync Resilience**: Hardened the application registry with diagnostic error shielding and "Ghost-Proof" fallback data to ensure zero-latency UI previews during database provisioning.
 
 ---
 

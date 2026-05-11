@@ -7,8 +7,12 @@ import { motion } from 'framer-motion';
  * A premium, institutional-grade loading screen for the Kashmir Direct platform.
  */
 export default function SovereignLoading({ message = "Unlocking Valley Vaults", fullScreen = true }) {
+  const containerClasses = fullScreen 
+    ? "fixed inset-0 z-[20000] bg-[#FDFBF7] flex flex-col items-center justify-center space-y-8" 
+    : "py-20 flex flex-col items-center justify-center space-y-8";
+
   return (
-    <div className={`${fullScreen ? 'min-h-[70vh]' : 'py-20'} flex flex-col items-center justify-center space-y-8`}>
+    <div className={containerClasses}>
       <div className="relative w-24 h-24">
         {/* Outer Glow */}
         <div className="absolute inset-[-8px] bg-[#BC6C25]/5 rounded-full blur-xl animate-pulse" />

@@ -10,11 +10,11 @@ class AuthService {
    */
   async executeAuthentication(identifier, secret) {
     const startTime = Date.now();
-    console.log(`🛡️ [Identity Guard] [${startTime}] Handshake initiated for: ${identifier}`);
+    console.log(`🛡️ [Account] [${startTime}] Login started for: ${identifier}`);
     
     // ⏱️ EXTENDED TIMEOUT: 30 seconds for slow/mobile connections
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Identity Vault Connection Timed Out (30s)')), 30000)
+      setTimeout(() => reject(new Error('Account Connection Timed Out (30s)')), 30000)
     );
 
     try {
@@ -28,23 +28,23 @@ class AuthService {
       const duration = endTime - startTime;
 
       if (error) {
-        console.error(`🛡️ [Identity Guard] [${endTime}] Handshake failed after ${duration}ms:`, error.message);
+        console.error(`🛡️ [Account] [${endTime}] Login failed after ${duration}ms:`, error.message);
       } else {
-        console.log(`🛡️ [Identity Guard] [${endTime}] Protocol valid. Access granted in ${duration}ms.`);
+        console.log(`🛡️ [Account] [${endTime}] Login successful. Welcome.`);
       }
 
       return { data, error };
     } catch (err) {
       const errorTime = Date.now();
-      console.error(`🛡️ [Identity Guard] [${errorTime}] Critical Handshake Failure:`, err.message);
+      console.error(`🛡️ [Account] [${errorTime}] Login error:`, err.message);
       return { data: null, error: { message: err.message || 'Connection Timeout' } };
     }
   }
 
   async terminateSession() {
-    console.log('🛡️ [Identity Guard] Purging active session...');
+    console.log('🛡️ [Account] Global session termination in progress...');
     try {
-      const { error } = await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
       return { error };
     } catch (err) {
       return { error: err };
@@ -52,7 +52,7 @@ class AuthService {
   }
 
   async forgeIdentity(email, password, metadata = {}) {
-    console.log('🛡️ [Identity Guard] Forging new identity node...');
+    console.log('🛡️ [Account] Creating account...');
     try {
       const { data, error } = await supabase.auth.signUp({
         email,

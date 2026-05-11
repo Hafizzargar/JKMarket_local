@@ -52,10 +52,10 @@ export default function SellerDashboard() {
           <div className="page-header">
              <div className="flex items-center gap-2 mb-2">
                 <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#1B4332]/40">Live Dashboard Node</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#1B4332]/40">Status</span>
              </div>
-             <h1 className="text-4xl font-black text-[#1B4332] tracking-tighter leading-none">Operational <span className="text-[#BC6C25] font-serif italic font-normal lowercase">Overview</span></h1>
-             <p className="text-[12px] font-medium text-[#1B4332]/40 italic mt-2">Welcome back, {profile?.full_name?.split(' ')[0] || 'Artisan'}.</p>
+             <h1 className="text-4xl font-black text-[#1B4332] tracking-tighter leading-none">Sales <span className="text-[#BC6C25] font-serif italic font-normal lowercase">Summary</span></h1>
+             <p className="text-[12px] font-medium text-[#1B4332]/40 italic mt-2">Welcome back, {profile?.full_name?.split(' ')[0] || 'Seller'}.</p>
           </div>
           
           <button 
@@ -70,10 +70,10 @@ export default function SellerDashboard() {
           {/* 📊 RAPID STATS NODES */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
-                { label: 'Live Listings', value: myStats.approved, sub: 'Active & Verified', color: '#10B981', icon: Activity },
-                { label: 'Pending Review', value: myStats.pending, sub: 'In Queue', color: '#BC6C25', icon: Clock },
-                { label: 'Needs Action', value: myStats.rejected, sub: 'Rejected Items', color: '#EF4444', icon: AlertCircle },
-                { label: 'Revenue Pool', value: myStats.earnings, sub: 'Total Success', color: '#1B4332', highlight: true, icon: BarChart3 }
+                { label: 'My Products', value: myStats.approved, sub: 'Active', color: '#10B981', icon: Activity },
+                { label: 'Pending Review', value: myStats.pending, sub: 'Checking', color: '#BC6C25', icon: Clock },
+                { label: 'Needs Action', value: myStats.rejected, sub: 'Issues', color: '#EF4444', icon: AlertCircle },
+                { label: 'Total Earnings', value: myStats.earnings, sub: 'Successful Sales', color: '#1B4332', highlight: true, icon: BarChart3 }
               ].map((stat, i) => (
                 <div key={i} className="bg-white border border-[#1B4332]/5 p-8 rounded-[2.5rem] relative overflow-hidden group hover:shadow-2xl transition-all duration-500 shadow-sm">
                    <div className="absolute top-0 right-0 w-24 h-24 bg-[#BC6C25]/5 rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-150 duration-700" />
@@ -97,20 +97,20 @@ export default function SellerDashboard() {
                         <Zap size={24} className="fill-emerald-600" />
                       </div>
                       <div>
-                         <h3 className="text-lg font-black uppercase tracking-[0.1em] text-[#1B4332]">Identity Status: Active</h3>
-                         <p className="text-xs text-[#1B4332]/40 font-medium">Your artisan node is synced with the Valley Core.</p>
+                         <h3 className="text-lg font-black uppercase tracking-[0.1em] text-[#1B4332]">Account Status: Active</h3>
+                         <p className="text-xs text-[#1B4332]/40 font-medium">Your account is connected and live.</p>
                       </div>
                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
                    <button onClick={() => router.push('/seller/inventory')} className="p-6 rounded-[1.5rem] bg-[#1B4332]/5 border border-[#1B4332]/5 text-left group hover:bg-[#1B4332] transition-all">
-                      <p className="text-[9px] font-black uppercase tracking-widest text-[#1B4332]/30 group-hover:text-white/40 mb-2">Workspace</p>
-                      <p className="text-sm font-black text-[#1B4332] group-hover:text-white">Inventory Registry</p>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-[#1B4332]/30 group-hover:text-white/40 mb-2">My Shop</p>
+                      <p className="text-sm font-black text-[#1B4332] group-hover:text-white">My Products</p>
                    </button>
                    <button onClick={() => router.push('/seller/orders')} className="p-6 rounded-[1.5rem] bg-[#BC6C25]/5 border border-[#BC6C25]/5 text-left group hover:bg-[#BC6C25] transition-all">
-                      <p className="text-[9px] font-black uppercase tracking-widest text-[#BC6C25]/30 group-hover:text-white/40 mb-2">Logistics</p>
-                      <p className="text-sm font-black text-[#BC6C25] group-hover:text-white">Order Management</p>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-[#BC6C25]/30 group-hover:text-white/40 mb-2">Shipping</p>
+                      <p className="text-sm font-black text-[#BC6C25] group-hover:text-white">My Orders</p>
                    </button>
                 </div>
              </div>
@@ -119,8 +119,8 @@ export default function SellerDashboard() {
                 <div className="bg-[#1B4332] p-8 rounded-[3rem] text-white shadow-2xl relative overflow-hidden h-full">
                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-3xl rounded-full" />
                    <h4 className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40 mb-4">Support Link</h4>
-                   <p className="text-xl font-black leading-tight mb-8 italic serif">Need assistance with your artisan profile?</p>
-                   <button className="w-full py-4 bg-white text-[#1B4332] rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all">Contact Concierge</button>
+                   <p className="text-xl font-black leading-tight mb-8 italic serif">Need help with your seller profile?</p>
+                   <button className="w-full py-4 bg-white text-[#1B4332] rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all">Get Help</button>
                 </div>
              </div>
           </div>

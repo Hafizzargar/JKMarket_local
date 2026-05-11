@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Plus, Loader2, Heart, Star, ShoppingCart, Minus, Trash2 } from 'lucide-react';
+import { MapPin, Plus, Loader2, Heart, Star, ShoppingCart, Minus, Trash2, Eye } from 'lucide-react';
 
 /**
  * 🏔️ BOUTIQUE CARD (REUSABLE COMPONENT)
@@ -44,6 +44,7 @@ export default function BoutiqueCard({
   onAction,
   onDecrement,
   onWishlist,
+  onView,
   actionIcon: ActionIcon = Plus,
   className = ""
 }) {
@@ -54,7 +55,8 @@ export default function BoutiqueCard({
       initial={{ opacity: 0, y: 15 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      className={`group relative bg-[#F9F6EE] rounded-[1.5rem] p-1.5 transition-all duration-500 overflow-hidden shadow-sm hover:shadow-xl border border-transparent hover:border-[#1B4332]/5 ${className}`}
+      onClick={onView}
+      className={`group relative bg-[#F9F6EE] rounded-[1.5rem] p-1.5 transition-all duration-500 overflow-hidden shadow-sm hover:shadow-xl border border-transparent hover:border-[#1B4332]/5 ${onView ? 'cursor-pointer' : ''} ${className}`}
     >
       {/* 🖼️ IMAGE CONTAINER */}
       <div className="relative aspect-[16/11] rounded-[1.2rem] overflow-hidden bg-[#F2EDE0] flex items-center justify-center p-4">
@@ -77,24 +79,41 @@ export default function BoutiqueCard({
         </div>
 
         {/* ❤️ WISHLIST ACTION */}
-        <div className="absolute top-3 right-3 z-20">
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onWishlist?.();
-            }}
-            className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg border border-white/50"
-          >
-            <Heart 
-              className={`w-4 h-4 transition-colors ${isWishlisted ? "drop-shadow-[0_2px_5px_rgba(139,92,246,0.5)]" : ""}`}
-              fill={isWishlisted ? "url(#boutiqueHeartGradient)" : "none"} 
-              stroke={isWishlisted ? "none" : "#D1D5DB"} 
-              strokeWidth={2}
-            />
-          </motion.button>
+        <div className="absolute top-3 right-3 z-20 flex flex-col gap-2">
+          {onView && (
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onView?.();
+              }}
+              className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg border border-white/50 text-[#1B4332]/40 hover:text-[#BC6C25] transition-colors"
+            >
+              <Eye size={16} />
+            </motion.button>
+          )}
+
+          {onWishlist && (
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onWishlist?.();
+              }}
+              className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg border border-white/50"
+            >
+              <Heart 
+                className={`w-4 h-4 transition-colors ${isWishlisted ? "drop-shadow-[0_2px_5px_rgba(139,92,246,0.5)]" : ""}`}
+                fill={isWishlisted ? "url(#boutiqueHeartGradient)" : "none"} 
+                stroke={isWishlisted ? "none" : "#D1D5DB"} 
+                strokeWidth={2}
+              />
+            </motion.button>
+          )}
         </div>
 
         {/* IMAGE */}
@@ -158,69 +177,71 @@ export default function BoutiqueCard({
             </div>
 
             {/* 🛒 CART/QUANTITY CONTROLLER */}
-            <motion.div 
-              layout
-              className={`relative flex items-center bg-[#1B4332] text-white rounded-xl shadow-lg shadow-[#1B4332]/20 transition-all overflow-hidden ${quantity > 0 ? 'px-1' : ''}`}
-            >
-              <AnimatePresence mode="wait">
-                {quantity === 0 ? (
-                  <motion.button
-                    key="add"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      onAction?.();
-                    }}
-                    disabled={isLoading}
-                    className="w-9 h-9 flex items-center justify-center hover:bg-[#153225] transition-colors"
-                  >
-                    {isLoading ? (
-                      <Loader2 size={12} className="animate-spin" />
-                    ) : (
-                      <ActionIcon size={16} strokeWidth={3} />
-                    )}
-                  </motion.button>
-                ) : (
-                  <motion.div
-                    key="quantity"
-                    initial={{ width: 0, opacity: 0 }}
-                    animate={{ width: 'auto', opacity: 1 }}
-                    exit={{ width: 0, opacity: 0 }}
-                    className="flex items-center gap-2 h-9"
-                  >
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        onDecrement?.();
-                      }}
-                      className="w-7 h-7 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
-                    >
-                      {quantity === 1 ? <Trash2 size={12} /> : <Minus size={12} strokeWidth={3} />}
-                    </button>
-                    
-                    <span className="text-[11px] font-black min-w-[1ch] text-center">
-                      {quantity}
-                    </span>
-
-                    <button
+            {onAction && (
+              <motion.div 
+                layout
+                className={`relative flex items-center bg-[#1B4332] text-white rounded-xl shadow-lg shadow-[#1B4332]/20 transition-all overflow-hidden ${quantity > 0 ? 'px-1' : ''}`}
+              >
+                <AnimatePresence mode="wait">
+                  {quantity === 0 ? (
+                    <motion.button
+                      key="add"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      whileTap={{ scale: 0.95 }}
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
                         onAction?.();
                       }}
-                      className="w-7 h-7 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
+                      disabled={isLoading}
+                      className="w-9 h-9 flex items-center justify-center hover:bg-[#153225] transition-colors"
                     >
-                      <Plus size={12} strokeWidth={3} />
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
+                      {isLoading ? (
+                        <Loader2 size={12} className="animate-spin" />
+                      ) : (
+                        <ActionIcon size={16} strokeWidth={3} />
+                      )}
+                    </motion.button>
+                  ) : (
+                    <motion.div
+                      key="quantity"
+                      initial={{ width: 0, opacity: 0 }}
+                      animate={{ width: 'auto', opacity: 1 }}
+                      exit={{ width: 0, opacity: 0 }}
+                      className="flex items-center gap-2 h-9"
+                    >
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          onDecrement?.();
+                        }}
+                        className="w-7 h-7 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
+                      >
+                        {quantity === 1 ? <Trash2 size={12} /> : <Minus size={12} strokeWidth={3} />}
+                      </button>
+                      
+                      <span className="text-[11px] font-black min-w-[1ch] text-center">
+                        {quantity}
+                      </span>
+
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          onAction?.();
+                        }}
+                        className="w-7 h-7 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
+                      >
+                        <Plus size={12} strokeWidth={3} />
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            )}
           </div>
         </div>
       </div>

@@ -1,70 +1,120 @@
-'use client';
+import { Store, ShieldCheck, Zap, Package, MapPin, Mail, Clock, Search, ShieldAlert } from 'lucide-react';
+import { ForgeTable, ForgeBadge, ForgeButton } from './shared/ForgeComponents';
+import SovereignPagination from './SovereignPagination';
 
-import { Store, CheckCircle2, ShieldOff, Zap, ChevronRight, Globe } from 'lucide-react';
-import Button from '../ui/Button';
+export default function ArtisanRegistry({ 
+  shopkeepers = [], 
+  onEdit, 
+  loading = false,
+  currentPage,
+  totalItems,
+  itemsPerPage,
+  onPageChange,
+  onPageSizeChange
+}) {
+  const columns = [
+    { label: 'Owner Details', align: 'left' },
+    { label: 'Shop Details', align: 'left' },
+    { label: 'Verification', align: 'center' },
+    { label: 'Max Products', align: 'center' },
+    { label: 'Actions', align: 'right' }
+  ];
 
-export default function ArtisanRegistry({ shopkeepers, onEdit }) {
+  const renderRow = (sk) => (
+    <>
+      {/* 👤 OWNER DETAILS */}
+      <td className="px-4 py-3">
+         <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full bg-[#1B4332]/5 flex items-center justify-center text-[#1B4332] border border-[#1B4332]/10 font-black text-[12px] group-hover:bg-[#1B4332] group-hover:text-white transition-all duration-300">
+               {sk.profiles?.full_name?.[0]?.toUpperCase() || 'U'}
+            </div>
+            <div className="space-y-0.5">
+               <p className="text-[13px] font-black text-[#1B4332] uppercase tracking-tight leading-none">{sk.profiles?.full_name || 'Artisan Head'}</p>
+               <div className="flex items-center gap-1.5 opacity-40">
+                  <Mail size={10} />
+                  <p className="text-[9px] font-bold lowercase tracking-tight">{sk.profiles?.email}</p>
+               </div>
+            </div>
+         </div>
+      </td>
+
+      {/* 🏪 SHOP DETAILS */}
+      <td className="px-4 py-3">
+         <div className="space-y-1.5">
+            <p className="text-[13px] font-black text-[#1B4332] uppercase tracking-tighter leading-none">{sk.shop_name}</p>
+            <div className="flex flex-col gap-1">
+               <p className="text-[8px] font-black text-[#BC6C25] uppercase tracking-[0.3em]">{sk.profiles?.full_name || 'Proprietor'}</p>
+               <div className="flex items-center gap-1.5 text-[#1B4332]/40">
+                  <MapPin size={10} className="text-[#BC6C25]" />
+                  <p className="text-[8px] font-black uppercase tracking-[0.1em]">{sk.location || 'Kashmir, India'}</p>
+               </div>
+            </div>
+         </div>
+      </td>
+
+      {/* 🛡️ VERIFICATION */}
+      <td className="px-4 py-3 text-center">
+         <ForgeBadge 
+            label={sk.is_verified ? 'Verified' : 'Pending'}
+            variant={sk.is_verified ? 'success' : 'warning'}
+            icon={sk.is_verified ? ShieldCheck : Clock}
+         />
+      </td>
+
+      {/* 📦 MAX PRODUCTS */}
+      <td className="px-4 py-3 text-center">
+         <div className="flex flex-col items-center">
+            <div className="flex items-center gap-1.5 mb-1">
+               <Package size={14} className="text-[#1B4332]/20" />
+               <p className="text-[15px] font-black text-[#1B4332] tracking-tighter">{sk.product_limit}</p>
+            </div>
+            <p className="text-[8px] font-bold text-[#1B4332]/30 uppercase tracking-[0.2em]">Items Allowed</p>
+         </div>
+      </td>
+
+      {/* 🚀 ACTIONS */}
+      <td className="px-4 py-3 text-right">
+         <ForgeButton 
+           variant="primary" 
+           icon={Zap} 
+           onClick={() => onEdit(sk)}
+         >
+            Manage
+         </ForgeButton>
+      </td>
+    </>
+  );
+
   return (
-    <div className="bg-white border border-[#1B4332]/5 rounded-[3.5rem] overflow-hidden shadow-[0_30px_70px_-20px_rgba(27,67,50,0.1)] relative group">
-      {/* 🎭 AMBIENT GLOW */}
-      <div className="absolute top-0 right-0 w-[40%] h-[40%] bg-[#BC6C25]/5 blur-[120px] pointer-events-none" />
+    <ForgeTable 
+      columns={columns}
+      data={shopkeepers || []}
+      loading={loading}
+      emptyMessage="No Shopkeepers Found"
+      renderRow={renderRow}
+      icon={Store}
+      header={
+        <div className="flex items-center justify-between px-6 py-3 bg-[#FDFBF7]/50 border-b border-[#1B4332]/5">
+           {/* 🔍 COMPACT SEARCH */}
+           <div className="relative group">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#1B4332]/40 group-focus-within:text-[#BC6C25] transition-colors" />
+              <input 
+                type="text"
+                placeholder="Search artisans..."
+                className="bg-white border border-[#1B4332]/20 rounded-[8px] pl-10 pr-4 py-2 text-[10px] font-black text-[#1B4332] placeholder:text-[#1B4332]/40 outline-none focus:border-[#BC6C25]/40 focus:bg-white transition-all w-48"
+              />
+           </div>
 
-      <div className="relative z-10 overflow-x-auto no-scrollbar">
-        <table className="w-full text-left">
-           <thead>
-              <tr className="bg-[#1B4332]/[0.01]">
-                 <th className="px-8 sm:px-12 py-8 text-[9px] font-black uppercase tracking-widest text-[#1B4332]/20">Shop Details</th>
-                 <th className="px-8 sm:px-12 py-8 text-[9px] font-black uppercase tracking-widest text-[#1B4332]/20">Verification Status</th>
-                 <th className="px-8 sm:px-12 py-8 text-[9px] font-black uppercase tracking-widest text-[#1B4332]/20 text-right">Actions</th>
-              </tr>
-           </thead>
-           <tbody className="divide-y divide-[#1B4332]/[0.05]">
-              {shopkeepers.map((sk) => (
-                <tr key={sk.id} className="hover:bg-[#1B4332]/[0.02] transition-all group/row">
-                   <td className="px-8 sm:px-12 py-8 sm:py-10">
-                      <div className="flex items-center gap-6 sm:gap-8">
-                         <div className="relative">
-                            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[#1B4332]/5 rounded-2xl flex items-center justify-center text-[#BC6C25] font-black text-xl group-hover/row:bg-[#BC6C25] group-hover/row:text-white transition-all shadow-sm border border-[#1B4332]/5 relative z-10">
-                               {sk.shop_name[0]}
-                            </div>
-                            <div className="absolute inset-0 bg-[#BC6C25]/10 blur-xl rounded-full opacity-0 group-hover/row:opacity-100 transition-opacity" />
-                         </div>
-                         <div className="flex-1 min-w-0">
-                           <p className="text-[13px] lg:text-[15px] font-black text-[#1B4332] truncate uppercase tracking-tighter leading-none group-hover:text-[#BC6C25] transition-colors">
-                              {sk.shop_name || 'New Boutique'}
-                           </p>
-                           <p className="text-[9px] lg:text-[11px] font-black text-[#1B4332]/20 uppercase tracking-[0.2em] mt-1.5 truncate italic">
-                              {sk.profiles?.full_name || 'Individual Artisan'}
-                           </p>
-                        </div>
-                      </div>
-                   </td>
-                   <td className="px-8 sm:px-12 py-8 sm:py-10">
-                      <div className="flex items-center gap-6">
-                         <div className={`px-4 py-2 rounded-xl text-[8px] font-black uppercase tracking-[0.2em] flex items-center gap-3 border ${sk.is_verified ? 'bg-emerald-500/5 border-emerald-500/10 text-emerald-600' : 'bg-rose-500/5 border-rose-500/10 text-rose-600'}`}>
-                            <div className={`w-1 h-1 rounded-full ${sk.is_verified ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-rose-500 shadow-[0_0_8px_#f43f5e]'}`} />
-                            {sk.is_verified ? 'Verified' : 'Suspended'}
-                         </div>
-                         <div className="flex flex-col">
-                            <span className="text-[9px] sm:text-[10px] font-black text-[#1B4332]/40 uppercase tracking-tighter leading-none italic mb-1">Product Limit</span>
-                            <span className="text-[10px] sm:text-[11px] font-bold text-[#BC6C25] uppercase tracking-tighter italic">{sk.product_limit} Slots</span>
-                         </div>
-                      </div>
-                   </td>
-                   <td className="px-8 sm:px-12 py-8 sm:py-10 text-right">
-                      <button 
-                        onClick={() => onEdit(sk)}
-                        className="h-11 px-6 sm:px-8 rounded-2xl bg-[#1B4332]/5 border border-[#1B4332]/5 hover:border-[#BC6C25]/40 hover:bg-[#BC6C25]/10 text-[#1B4332] font-black text-[9px] tracking-[0.2em] uppercase transition-all flex items-center gap-3 ml-auto group/btn shadow-sm"
-                      >
-                         Edit Permissions
-                         <ChevronRight size={14} className="text-[#1B4332]/20 group-hover/btn:text-[#BC6C25] group-hover/btn:translate-x-1 transition-all" />
-                      </button>
-                   </td>
-                </tr>
-              ))}
-           </tbody>
-        </table>
-      </div>
-    </div>
+           {/* 🚀 COMPACT NAVIGATION */}
+           <SovereignPagination 
+             variant="compact"
+             currentPage={currentPage}
+             totalItems={totalItems}
+             itemsPerPage={itemsPerPage}
+             onPageChange={onPageChange}
+           />
+        </div>
+      }
+    />
   );
 }

@@ -5,11 +5,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter, usePathname } from 'next/navigation';
 import { 
-  ShieldCheck, LayoutDashboard, Search, Menu, X, Loader2
+  ShieldCheck, LayoutDashboard, Search, Menu, X, Loader2, RefreshCw
 } from 'lucide-react';
 import AuthGuard from '@/components/auth/AuthGuard';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import GovernanceDropdown from '@/components/admin/GovernanceDropdown';
+import SovereignLoading from '@/components/ui/SovereignLoading';
 
 export default function SuperAdminLayout({ children }) {
   const { user, profile, loading, signOut, isAdmin } = useAuth();
@@ -22,9 +23,28 @@ export default function SuperAdminLayout({ children }) {
   // 🛰️ STATS STATE (Shared across layout)
   const [stats, setStats] = useState({ products: 0, sellers: 0, pending: 0, revenue: '₹0' });
 
+  // 🛰️ GLOBAL KINETIC SYNC
   useEffect(() => {
-    if (isAdmin) fetchGlobalStats();
-  }, [isAdmin]);
+    // 🔄 Trigger on Tab Shift
+    setIsDataLoading(true);
+    const timer = setTimeout(() => setIsDataLoading(false), 1500);
+    return () => clearTimeout(timer);
+  }, [pathname]);
+
+  useEffect(() => {
+    fetchGlobalStats();
+  }, []);
+
+  useEffect(() => {
+    // 📡 Trigger on Manual/Internal Sync Events
+    const handlePlatformSync = () => {
+      setIsDataLoading(true);
+      fetchGlobalStats();
+      setTimeout(() => setIsDataLoading(false), 1500);
+    };
+    window.addEventListener('platform-sync', handlePlatformSync);
+    return () => window.removeEventListener('platform-sync', handlePlatformSync);
+  }, []);
 
   const fetchGlobalStats = async () => {
     try {
@@ -59,7 +79,7 @@ export default function SuperAdminLayout({ children }) {
 
   if (loading && !user) return (
     <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center">
-       <div className="w-12 h-12 border-2 border-[#BC6C25]/20 border-t-[#BC6C25] rounded-full animate-spin" />
+       <SovereignLoading message="Securing Admin Channel" />
     </div>
   );
 
@@ -94,7 +114,7 @@ export default function SuperAdminLayout({ children }) {
           profile={profile}
         />
 
-        <main className="flex-1 h-screen pt-16 lg:pt-0 flex flex-col overflow-hidden relative">
+        <main className="flex-1 h-[100dvh] pt-16 lg:pt-0 flex flex-col overflow-hidden relative">
           {/* 🏛️ FIXED COMMAND HEADER */}
           <header className="bg-[#FDFBF7]/80 backdrop-blur-3xl border-b border-[#1B4332]/5 px-6 lg:px-12 py-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 shrink-0 z-[60]">
              <div>
@@ -102,7 +122,7 @@ export default function SuperAdminLayout({ children }) {
                    <h2 className="text-lg lg:text-xl font-black tracking-tighter uppercase italic leading-none text-[#1B4332]">
                       {pathname.split('/').pop()} Management
                    </h2>
-                   {isDataLoading && <Loader2 size={14} className="animate-spin text-[#BC6C25]" />}
+
                 </div>
                 <div className="flex items-center gap-2">
                    <div className="w-1 h-1 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_#10b981]" />
@@ -116,6 +136,39 @@ export default function SuperAdminLayout({ children }) {
                 </div>
                 
                 <GovernanceDropdown onAction={changeTab} />
+                
+                <motion.button 
+                  onClick={() => {
+                    setIsDataLoading(true);
+                    window.dispatchEvent(new CustomEvent('platform-sync'));
+                    // Provide a sophisticated 1.5s kinetic cycle
+                    setTimeout(() => setIsDataLoading(false), 1500);
+                  }}
+                  animate={{ 
+                    backgroundColor: isDataLoading ? 'rgba(188, 108, 37, 0.15)' : 'rgba(255, 255, 255, 0.4)',
+                    borderColor: isDataLoading ? 'rgba(188, 108, 37, 0.3)' : 'rgba(27, 67, 50, 0.05)',
+                    scale: isDataLoading ? 0.95 : 1
+                  }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="w-10 h-10 rounded-xl border shadow-sm flex items-center justify-center text-[#1B4332]/60 hover:text-[#BC6C25] transition-all group relative overflow-hidden"
+                  title="Sync Current Registry"
+                >
+                   <motion.div
+                     animate={{ rotate: isDataLoading ? 360 : 0 }}
+                     transition={{ duration: 1, repeat: isDataLoading ? Infinity : 0, ease: "linear" }}
+                     className="relative z-10"
+                   >
+                      <RefreshCw size={18} className={isDataLoading ? 'text-[#BC6C25]' : 'group-hover:rotate-180 transition-transform duration-500'} />
+                   </motion.div>
+                   {isDataLoading && (
+                     <motion.div 
+                       initial={{ opacity: 0 }}
+                       animate={{ opacity: 1 }}
+                       className="absolute inset-0 bg-[#BC6C25]/5 animate-pulse"
+                     />
+                   )}
+                </motion.button>
 
                 <div className="flex items-center gap-3 bg-white/40 p-1 rounded-2xl border border-[#1B4332]/5 shadow-sm hover:border-[#BC6C25]/20 transition-all cursor-pointer group/prof" onClick={() => router.push('/super-admin/settings')}>
                    <div className="hidden sm:flex flex-col items-end px-2">

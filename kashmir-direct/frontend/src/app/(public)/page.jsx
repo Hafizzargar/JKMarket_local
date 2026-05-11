@@ -4,12 +4,12 @@ import { motion } from 'framer-motion';
 import { ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { useStore } from '../store/useStore';
-import { useAuth } from '../context/AuthContext';
-import LogisticsAnimation from '../components/ui/LogisticsAnimation';
-import ProductGrid from '../components/products/ProductGrid';
-import Button from '../components/ui/Button';
-import Logo from '../components/ui/Logo';
+import { useStore } from '../../store/useStore';
+import { useAuth } from '../../context/AuthContext';
+import LogisticsAnimation from '../../components/ui/LogisticsAnimation';
+import ProductGrid from '../../components/products/ProductGrid';
+import Button from '../../components/ui/Button';
+import Logo from '../../components/ui/Logo';
 
 const categories = [
   { name: 'Saffron & Spices', icon: '🌸', color: 'bg-[#FEF9C3]', slug: 'saffron' },

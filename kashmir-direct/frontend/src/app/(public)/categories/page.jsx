@@ -1,7 +1,10 @@
 'use client';
 
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { useRouter, usePathname } from 'next/navigation';
+import { useAuth } from '../../../context/AuthContext';
 
 const categories = [
   { 
@@ -49,6 +52,16 @@ const categories = [
 ];
 
 export default function CategoriesPage() {
+  const { user, profile, isAdmin } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+  const isBuyer = user && !isAdmin && (profile?.role === 'customer' || profile?.role === 'buyer');
+
+  useEffect(() => {
+    if (isBuyer && !pathname.startsWith('/buyer')) {
+       router.push('/buyer/categories');
+    }
+  }, [isBuyer, router, pathname]);
   return (
     <div className="relative min-h-screen pt-32 sm:pt-40">
       <div className="bg-3d-mesh" />
@@ -84,7 +97,7 @@ export default function CategoriesPage() {
               <p className="text-slate-500 font-bold mb-8 leading-relaxed">
                 {cat.desc}
               </p>
-              <Link href={`/products?category=${cat.slug}`}>
+              <Link href={isBuyer ? `/buyer/products?category=${cat.slug}` : `/products?category=${cat.slug}`}>
                 <button className="text-emerald-600 font-black flex items-center group-hover:gap-2 transition-all">
                   Browse Collection <span className="ml-2">&rarr;</span>
                 </button>

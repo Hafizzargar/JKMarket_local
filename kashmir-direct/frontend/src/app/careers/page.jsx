@@ -64,9 +64,9 @@ export default function CareersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] pt-32 sm:pt-40">
+    <div className="min-h-screen bg-[#FDFBF7] pt-24 sm:pt-28">
       {/* 🏔️ HERO SECTION */}
-      <section className="relative py-24 sm:py-32 px-6 overflow-hidden">
+      <section className="relative py-12 sm:py-16 px-6 overflow-hidden">
         <div className="absolute inset-0 bg-[#1B4332]/[0.02] -skew-y-3 origin-right" />
         <div className="max-w-7xl mx-auto relative z-10 text-center">
           <motion.div
@@ -75,14 +75,14 @@ export default function CareersPage() {
             className="space-y-6"
           >
             <div className="inline-flex items-center px-4 py-1.5 rounded-full border border-[#BC6C25]/20">
-              <span className="text-[9px] font-black tracking-[0.4em] uppercase text-[#BC6C25]">Join the Valley Legacy</span>
+              <span className="text-[9px] font-black tracking-[0.4em] uppercase text-[#BC6C25]">Careers</span>
             </div>
             <h1 className="text-5xl sm:text-7xl font-black text-[#1B4332] tracking-tighter leading-none">
-              Forge Your <br/>
-              <span className="text-[#BC6C25] font-serif italic font-normal">Future</span>
+              Join Our <br/>
+              <span className="text-[#BC6C25] font-serif italic font-normal">Team</span>
             </h1>
             <p className="text-lg text-[#1B4332]/50 font-medium max-w-2xl mx-auto leading-relaxed">
-              Help us scale the purest artisan marketplace in the world. We are looking for guardians of heritage and masters of modern logistics.
+              Help us build the best marketplace for local products. We are looking for good people to help us grow and manage our business.
             </p>
           </motion.div>
         </div>

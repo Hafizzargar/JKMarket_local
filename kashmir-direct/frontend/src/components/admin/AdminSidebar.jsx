@@ -1,15 +1,21 @@
-import { ShieldCheck, LayoutDashboard, Package, Briefcase, Store, Settings, LogOut, Globe, Users, ChevronLeft, ChevronRight, ShoppingBag } from 'lucide-react';
+import { ShieldCheck, LayoutDashboard, Package, Briefcase, Settings, LogOut, Users, ChevronLeft, ChevronRight, ShoppingBag, ChevronDown, Database, FileText, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import Link from 'next/link';
 
 export default function AdminSidebar({ activeTab, setActiveTab, stats, signOut, isCollapsed, setIsCollapsed, profile }) {
   const router = useRouter();
   const pathname = usePathname();
   const [isMobile, setIsMobile] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [expandedItems, setExpandedItems] = useState(['vault']);
+
+  const toggleExpand = (id) => {
+    setExpandedItems(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
 
   useEffect(() => {
     const checkMobile = () => {
@@ -24,11 +30,28 @@ export default function AdminSidebar({ activeTab, setActiveTab, stats, signOut, 
   }, []);
 
   const navItems = [
-    { id: 'admin', icon: LayoutDashboard, label: 'Admin Panel', path: '/super-admin' },
-    { id: 'products', icon: ShoppingBag, label: 'All Products', path: '/super-admin/products' },
-    { id: 'approval', icon: ShieldCheck, label: 'Check Products', path: '/super-admin/products/approval', count: stats?.pending || 0 },
+    { id: 'admin', icon: LayoutDashboard, label: 'Dashboard', path: '/super-admin/dashboard' },
+    { id: 'artisans', icon: Users, label: 'Identity Registry', path: '/super-admin/artisans' },
+    { 
+      id: 'products', 
+      icon: ShoppingBag, 
+      label: 'Product Vault', 
+      path: '/super-admin/products',
+      count: stats?.pending || 0
+    },
     { id: 'managers', icon: Users, label: 'Staff Managers', path: '/super-admin/managers' },
     { id: 'careers', icon: Briefcase, label: 'Careers', path: '/super-admin/careers' },
+    { id: 'orders', icon: Package, label: 'Buyer Orders', path: '/super-admin/orders' },
+    { 
+      id: 'vault', 
+      icon: Database, 
+      label: 'Platform Vault', 
+      children: [
+        { id: 'audit', label: 'Governance Audit', icon: ShieldCheck, path: '/super-admin/vault/audit' },
+        { id: 'logs', label: 'System Logs', icon: FileText, path: '/super-admin/vault/logs' },
+        { id: 'activity', label: 'Pulse Monitor', icon: Activity, path: '/super-admin/vault/pulse' }
+      ]
+    },
     { id: 'settings', label: 'Settings', icon: Settings, path: '/super-admin/settings' }
   ];
 
@@ -58,83 +81,137 @@ export default function AdminSidebar({ activeTab, setActiveTab, stats, signOut, 
             }}
             exit={isMobile ? { x: -300 } : { opacity: 0 }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed lg:sticky top-0 left-0 h-screen bg-[#FDFBF7] border-r border-[#1B4332]/5 flex flex-col shrink-0 z-[80] lg:z-50 shadow-2xl lg:shadow-none overflow-hidden"
+            className="fixed lg:sticky top-0 left-0 h-screen bg-[#FDFBF7] border-r border-[#1B4332]/5 flex flex-col shrink-0 z-[1000] lg:z-[1000] shadow-2xl lg:shadow-none"
           >
-            <div className="p-6 flex items-center justify-between">
+            {/* 🎚️ ROOT-LEVEL BORDER TOGGLE (ABSOLUTE VISIBILITY) */}
+            <motion.button 
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              whileHover={{ scale: 1.15, filter: 'brightness(1.1)' }}
+              whileTap={{ scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 400, damping: 15 }}
+              className="absolute -right-5 top-12 w-10 h-10 rounded-full bg-[#BC6C25] border-2 border-white flex items-center justify-center text-white shadow-[0_4px_25px_rgba(188,108,37,0.4)] z-[999] group cursor-pointer transition-all"
+            >
+              <AnimatePresence mode="wait">
+                 <motion.div
+                   key={isCollapsed ? 'right' : 'left'}
+                   initial={{ opacity: 0, rotate: -180 }}
+                   animate={{ opacity: 1, rotate: 0 }}
+                   exit={{ opacity: 0, rotate: 180 }}
+                   transition={{ duration: 0.3 }}
+                 >
+                    {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+                 </motion.div>
+              </AnimatePresence>
+            </motion.button>
+
+            <div className="p-6 flex items-center relative z-[100]">
                <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-[#BC6C25] rounded-xl flex items-center justify-center shadow-lg shadow-[#BC6C25]/20">
                      <ShieldCheck size={18} className="text-white" />
                   </div>
                   {!isCollapsed && (
                     <div className="flex flex-col">
-                      <span className="text-[12px] font-black text-[#1B4332] uppercase tracking-tighter leading-none">Admin Panel</span>
-                      <span className="text-[8px] font-black text-[#1B4332]/20 uppercase tracking-[0.2em] mt-1">Management</span>
+                       <span className="text-[12px] font-black text-[#1B4332] uppercase tracking-tighter leading-none">Admin Panel</span>
+                       <span className="text-[8px] font-black text-[#1B4332]/20 uppercase tracking-[0.2em] mt-1">Management</span>
                     </div>
                   )}
                </div>
-               <button 
-                 onClick={() => setIsCollapsed(!isCollapsed)}
-                 className="w-6 h-6 rounded-full bg-[#1B4332]/5 border border-[#1B4332]/10 flex items-center justify-center text-[#1B4332]/40 hover:text-[#1B4332] transition-all hover:bg-[#BC6C25] hover:border-[#BC6C25] hover:text-white"
-               >
-                 {isCollapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
-               </button>
             </div>
 
-            <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto no-scrollbar">
-              {navItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    router.push(item.path);
-                    if (isMobile) setIsCollapsed(true);
-                  }}
-                  className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all group relative ${
-                    pathname === item.path
-                      ? 'bg-[#BC6C25] text-white shadow-xl shadow-[#BC6C25]/20' 
-                      : 'text-[#1B4332]/40 hover:bg-[#1B4332]/[0.03] hover:text-[#1B4332]/60'
-                  }`}
-                >
-                  <item.icon size={16} className={pathname === item.path ? 'text-white' : 'group-hover:text-[#1B4332] transition-colors'} />
-                  {!isCollapsed && (
-                    <span className="text-[8px] font-black uppercase tracking-[0.15em] whitespace-nowrap truncate">
-                      {item.label}
-                    </span>
-                  )}
-                  {!isCollapsed && item.count > 0 && (
-                    <span className={`ml-auto ${pathname === item.path ? 'bg-white text-[#BC6C25]' : 'bg-[#BC6C25] text-white'} text-[8px] font-black px-1.5 py-0.5 rounded-md shadow-lg shadow-[#BC6C25]/20`}>{item.count}</span>
-                  )}
-                  {pathname === item.path && (
-                    <motion.div layoutId="activeNav" className="absolute left-0 w-1 h-6 bg-white rounded-r-full" />
-                  )}
-                </button>
-              ))}
+            <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto no-scrollbar">
+              {navItems.map((item) => {
+                const hasChildren = item.children && item.children.length > 0;
+                const isExpanded = expandedItems.includes(item.id);
+                const isActive = item.path === '/super-admin/dashboard' 
+                  ? pathname === item.path 
+                  : pathname.startsWith(item.path) || (hasChildren && item.children.some(child => pathname.startsWith(child.path)));
+
+                return (
+                  <div key={item.id} className="space-y-1">
+                    <button
+                      onClick={() => {
+                        if (hasChildren) {
+                          toggleExpand(item.id);
+                        } else {
+                          router.push(item.path);
+                          if (isMobile) setIsCollapsed(true);
+                        }
+                      }}
+                      className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all group relative ${
+                        isActive
+                          ? (hasChildren ? 'bg-[#1B4332]/5 text-[#1B4332]' : 'bg-[#BC6C25] text-white shadow-xl shadow-[#BC6C25]/20') 
+                          : 'text-[#1B4332]/40 hover:bg-[#1B4332]/[0.03] hover:text-[#1B4332]/60'
+                      }`}
+                    >
+                      {/* 🌟 HIGH-PRIORITY HIGHLIGHTER (Pulse Effect for Pending items) */}
+                      {item.id === 'products' && item.count > 0 && (
+                        <motion.div 
+                          animate={{ scale: [1, 1.1, 1], opacity: [0.2, 0.4, 0.2] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                          className="absolute inset-0 bg-[#BC6C25] rounded-xl z-0"
+                        />
+                      )}
+
+                      <item.icon size={16} className={`relative z-10 ${isActive && !hasChildren ? 'text-white' : 'group-hover:text-[#1B4332] transition-colors'}`} />
+                      {!isCollapsed && (
+                        <span className="relative z-10 text-[8px] font-black uppercase tracking-[0.15em] whitespace-nowrap truncate">
+                          {item.label}
+                        </span>
+                      )}
+                      {!isCollapsed && hasChildren && (
+                        <ChevronDown 
+                          size={12} 
+                          className={`relative z-10 ml-auto transition-transform ${isExpanded ? 'rotate-180' : ''}`} 
+                        />
+                      )}
+                      {!isCollapsed && item.count > 0 && (
+                        <motion.span 
+                          animate={item.id === 'products' ? { scale: [1, 1.1, 1] } : {}}
+                          transition={{ duration: 1.5, repeat: Infinity }}
+                          className={`relative z-10 ml-auto ${isActive ? 'bg-white text-[#BC6C25]' : 'bg-[#BC6C25] text-white'} text-[8px] font-black px-1.5 py-0.5 rounded-md shadow-lg shadow-[#BC6C25]/20 border border-white/20`}
+                        >
+                          {item.count}
+                        </motion.span>
+                      )}
+                    </button>
+
+                    {/* 📂 CHILDREN NODES */}
+                    {!isCollapsed && hasChildren && (
+                      <AnimatePresence>
+                        {isExpanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="overflow-hidden pl-4 space-y-1"
+                          >
+                            {item.children.map(child => (
+                              <button
+                                key={child.id}
+                                onClick={() => {
+                                  router.push(child.path);
+                                  if (isMobile) setIsCollapsed(true);
+                                }}
+                                className={`w-full flex items-center gap-3 p-2.5 rounded-lg transition-all group ${
+                                  pathname === child.path 
+                                    ? 'bg-[#BC6C25]/10 text-[#BC6C25]' 
+                                    : 'text-[#1B4332]/30 hover:bg-[#1B4332]/[0.02] hover:text-[#1B4332]/50'
+                                }`}
+                              >
+                                <child.icon size={12} />
+                                <span className="text-[7.5px] font-black uppercase tracking-widest">{child.label}</span>
+                              </button>
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    )}
+                  </div>
+                );
+              })}
             </nav>
 
-            <div className="p-6 border-t border-[#1B4332]/5 space-y-4">
-               {!isCollapsed && (
-                 <button 
-                   onClick={() => {
-                     router.push('/super-admin/settings');
-                     if (isMobile) setIsCollapsed(true);
-                   }}
-                   className="w-full text-left transition-transform active:scale-95 group/identity"
-                 >
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`p-3 rounded-2xl border transition-all flex items-center gap-3 ${pathname === '/super-admin/settings' ? 'bg-[#BC6C25]/10 border-[#BC6C25]/20' : 'bg-[#1B4332]/[0.02] border-[#1B4332]/5 group-hover/identity:bg-[#1B4332]/[0.05] group-hover/identity:border-[#BC6C25]/20'}`}>
-                      <div className="w-8 h-8 rounded-lg bg-[#BC6C25] flex items-center justify-center text-white text-[10px] font-black overflow-hidden shrink-0">
-                        {profile?.avatar_url || profile?.profile_image ? (
-                          <img src={profile.avatar_url || profile.profile_image} className="w-full h-full object-cover" />
-                        ) : (
-                          profile?.full_name?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'AD'
-                        )}
-                      </div>
-                      <div className="flex-1 truncate">
-                        <p className="text-[9px] font-black text-[#1B4332] truncate uppercase tracking-tighter leading-none">{profile?.full_name?.split(' ')[0] || 'Admin'}</p>
-                        <p className="text-[7px] font-black text-[#BC6C25] uppercase tracking-widest mt-1">Admin</p>
-                      </div>
-                    </motion.div>
-                 </button>
-               )}
-
+            <div className="p-6 border-t border-[#1B4332]/5">
                <div className="space-y-1">
                  <button 
                    onClick={async () => {

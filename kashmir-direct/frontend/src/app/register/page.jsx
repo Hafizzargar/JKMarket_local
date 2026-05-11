@@ -21,11 +21,12 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Logo from '../../components/ui/Logo';
+import FloatingAnimation from '../../components/ui/FloatingAnimation';
 import { supabase } from '../../lib/supabase';
 
 export default function Register() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-organic-mesh text-[#1B4332] font-black uppercase tracking-widest animate-pulse">Initializing Vault...</div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#FDFBF7] text-[#1B4332] font-black uppercase tracking-widest animate-pulse">Loading...</div>}>
       <RegisterContent />
     </Suspense>
   );
@@ -120,25 +121,24 @@ function RegisterContent() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 sm:p-10 relative overflow-hidden">
-      <div className="bg-organic-mesh fixed inset-0" />
-      <div className="noise-overlay fixed inset-0" />
+    <div className="min-h-screen flex items-center justify-center p-4 sm:p-10 relative overflow-hidden bg-[#FDFBF7]">
+      <FloatingAnimation />
 
-      <div className="w-full max-w-xl bg-white/80 backdrop-blur-xl rounded-[2.5rem] sm:rounded-[3.5rem] shadow-[0_40px_100px_-20px_rgba(27,67,50,0.08)] border border-[#1B4332]/10 overflow-hidden flex flex-col relative z-10 my-4 sm:my-12">
+      <div className="w-full max-w-xl bg-white/80 backdrop-blur-xl rounded-[2.5rem] sm:rounded-[3.5rem] shadow-[0_40px_100px_-20px_rgba(27,67,50,0.08)] border border-white overflow-hidden flex flex-col relative z-10 my-4 sm:my-12">
 
         {/* 🏔️ PROGRESS HEADER */}
         <div className="p-8 sm:p-10 pb-0 flex justify-between items-center relative z-20">
           <div className="flex items-center gap-6">
-            <Link href="/" className="p-2 -ml-2 rounded-full hover:bg-[#1B4332]/5 text-[#1B4332]/40 hover:text-[#1B4332] transition-all">
+            <button onClick={() => step > 1 ? setStep(step - 1) : router.push('/login')} className="p-2 -ml-2 rounded-full hover:bg-[#1B4332]/5 text-[#1B4332]/40 hover:text-[#1B4332] transition-all">
               <ArrowLeft size={16} />
-            </Link>
+            </button>
             <div className="flex gap-2">
               {[1, 2, 3].map((s) => (
                 <div key={s} className={`h-1.5 rounded-full transition-all duration-700 ${step >= s ? 'w-10 bg-[#1B4332]' : 'w-4 bg-[#1B4332]/5'}`} />
               ))}
             </div>
           </div>
-          <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[#1B4332]/20">Phase {step}</span>
+          <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[#1B4332]/20">Step {step}</span>
         </div>
 
         <div className="p-8 sm:p-12 flex-grow flex flex-col">
@@ -149,24 +149,24 @@ function RegisterContent() {
                   <Link href="/" className="inline-block mb-4 sm:mb-8 hover:opacity-80 transition-opacity">
                     <Logo className="h-8 sm:h-10 mx-auto sm:mx-0" />
                   </Link>
-                  <h1 className="text-2xl sm:text-3xl font-black tracking-tighter text-[#1B4332]">Join the Community</h1>
-                  <p className="text-[10px] sm:text-xs text-[#1B4332]/40 mt-1">Select your path in the valley.</p>
+                  <h1 className="text-2xl sm:text-3xl font-black tracking-tighter text-[#1B4332]">Create Account</h1>
+                  <p className="text-[10px] sm:text-xs text-[#1B4332]/40 mt-1">Start your journey here.</p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {[
                     {
                       id: 'customer',
-                      label: 'Connoisseur / Buyer',
-                      desc: 'Shop the authenticated treasures of the valley',
+                      label: 'Buyer',
+                      desc: 'Buy local products from the valley',
                       icon: User,
                       color: 'bg-amber-500',
                       borderColor: 'border-amber-500/20'
                     },
                     {
                       id: 'seller',
-                      label: 'Artisan / Shopkeeper',
-                      desc: 'Open your heritage workshop to the world',
+                      label: 'Seller',
+                      desc: 'Sell your products to the world',
                       icon: Store,
                       color: 'bg-[#1B4332]',
                       borderColor: 'border-[#1B4332]/20'
@@ -230,8 +230,8 @@ function RegisterContent() {
             {step === 2 && (
               <motion.div key="step2" variants={stepVariants} initial="hidden" animate="visible" exit="exit" className="space-y-6">
                 <div className="text-center sm:text-left">
-                  <h1 className="text-2xl font-black tracking-tighter text-[#1B4332]">Security Setup</h1>
-                  <p className="text-[11px] text-[#1B4332]/40 mt-1">Establish your administrative credentials.</p>
+                  <h1 className="text-2xl font-black tracking-tighter text-[#1B4332]">Set Password</h1>
+                  <p className="text-[11px] text-[#1B4332]/40 mt-1">Create your login details.</p>
                 </div>
 
                 <div className="space-y-4">
@@ -241,10 +241,10 @@ function RegisterContent() {
                     type="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    placeholder="artisan@valley.com"
+                    placeholder="email@example.com"
                   />
                   <Input
-                    label="Secure Password"
+                    label="Password"
                     name="password"
                     type="password"
                     value={formData.password}
@@ -262,7 +262,7 @@ function RegisterContent() {
                     className={`flex-grow h-12 rounded-xl bg-gradient-to-r from-[#1B4332] to-[#2D5A47] ${cooldownActive ? 'opacity-50' : ''}`}
                     disabled={cooldownActive}
                   >
-                    {cooldownActive ? 'Security Cooldown Active' : (role === 'seller' ? 'Final Details' : 'Complete Setup')}
+                    {cooldownActive ? 'Wait...' : (role === 'seller' ? 'Next' : 'Create Account')}
                   </Button>
                 </div>
               </motion.div>
@@ -271,24 +271,24 @@ function RegisterContent() {
             {step === 3 && (
               <motion.div key="step3" variants={stepVariants} initial="hidden" animate="visible" exit="exit" className="space-y-6">
                 <div className="text-center sm:text-left">
-                  <h1 className="text-2xl font-black tracking-tighter text-[#1B4332]">Business Vault</h1>
-                  <p className="text-[11px] text-[#1B4332]/40 mt-1">Complete your shopkeeper profile for verification.</p>
+                  <h1 className="text-2xl font-black tracking-tighter text-[#1B4332]">Shop Details</h1>
+                  <p className="text-[11px] text-[#1B4332]/40 mt-1">Tell us about your business.</p>
                 </div>
 
                 <div className="grid grid-cols-1 gap-4">
                   <Input
-                    label="Workshop Name"
+                    label="Shop Name"
                     name="businessName"
                     value={formData.businessName}
                     onChange={handleInputChange}
-                    placeholder="e.g. Kashmir Heritage Silks"
+                    placeholder="e.g. My Craft Shop"
                   />
                   <Input
-                    label="GST Registration"
+                    label="GST Number (Optional)"
                     name="gstNumber"
                     value={formData.gstNumber}
                     onChange={handleInputChange}
-                    placeholder="GSTIN Number"
+                    placeholder="GSTIN"
                   />
                 </div>
 
@@ -302,7 +302,7 @@ function RegisterContent() {
                     isLoading={isSubmitting}
                     disabled={cooldownActive}
                   >
-                    {cooldownActive ? 'Security Cooldown Active' : 'Submit Verification'}
+                    {cooldownActive ? 'Wait...' : 'Finish'}
                   </Button>
                 </div>
               </motion.div>
@@ -314,11 +314,11 @@ function RegisterContent() {
                   <CheckCircle2 size={40} />
                 </div>
                 <div>
-                  <h2 className="text-3xl font-black text-[#1B4332]">Identity Created</h2>
-                  <p className="text-xs text-[#1B4332]/40 mt-2 max-w-[200px] mx-auto">Welcome to the valley community. Your credentials are now active.</p>
+                  <h2 className="text-3xl font-black text-[#1B4332]">Success!</h2>
+                  <p className="text-xs text-[#1B4332]/40 mt-2 max-w-[200px] mx-auto">Your account is ready. Welcome to our community.</p>
                 </div>
                 <Button onClick={() => router.push('/login')} className="w-full h-14 rounded-2xl">
-                  Enter the Marketplace
+                  Go to Login
                 </Button>
               </motion.div>
             )}

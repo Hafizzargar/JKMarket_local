@@ -14,22 +14,63 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type') || 'products';
+    const page = parseInt(searchParams.get('page')) || 1;
+    const pageSize = parseInt(searchParams.get('pageSize')) || 5;
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
 
-    let data, error;
+    let data, error, count;
 
     switch (type) {
       case 'products':
-        ({ data, error } = await supabase
+        let prodQuery = supabase
           .from('products')
-          .select('*, sellers(shop_name, profiles(full_name, email))')
-          .order('created_at', { ascending: false }));
+          .select('*, sellers(shop_name, profiles(full_name, email))', { count: 'exact' });
+
+        const statusFilter = searchParams.get('status');
+        if (statusFilter && statusFilter !== 'all') {
+          // Alignment: 'active' in UI maps to 'approved' in DB
+          const dbStatus = statusFilter === 'active' ? 'approved' : statusFilter;
+          prodQuery = prodQuery.eq('status', dbStatus);
+        }
+
+        ({ data, error, count } = await prodQuery
+          .order('created_at', { ascending: false })
+          .range(from, to));
         break;
       
       case 'artisans':
-        ({ data, error } = await supabase
+        ({ data, error, count } = await supabase
           .from('sellers')
-          .select('*, profiles!inner(*)')
-          .order('created_at', { ascending: false }));
+          .select('*, profiles!inner(*)', { count: 'exact' })
+          .order('created_at', { ascending: false })
+          .range(from, to));
+        break;
+
+      case 'buyers':
+        ({ data, error, count } = await supabase
+          .from('profiles')
+          .select('*', { count: 'exact' })
+          .eq('role', 'customer')
+          .order('created_at', { ascending: false })
+          .range(from, to));
+        break;
+
+      case 'orders':
+        ({ data, error, count } = await supabase
+          .from('orders')
+          .select('*, profiles(full_name, email)', { count: 'exact' })
+          .order('created_at', { ascending: false })
+          .range(from, to));
+        break;
+
+      case 'managers':
+        ({ data, error, count } = await supabase
+          .from('profiles')
+          .select('*', { count: 'exact' })
+          .ilike('role', '%Manager%')
+          .order('created_at', { ascending: false })
+          .range(from, to));
         break;
 
       case 'users':
@@ -44,7 +85,7 @@ export async function GET(request) {
     }
 
     if (error) throw error;
-    return NextResponse.json(data);
+    return NextResponse.json({ data, total: count });
 
   } catch (error) {
     console.error('🛡️ [Data Registry Failure]:', error);

@@ -136,66 +136,88 @@ export default function ProfileNode({ isModal = false }) {
 
   return (
     <div className="w-full">
-      <div className="flex items-center gap-1 bg-[#1B4332]/5 p-1 rounded-2xl mb-8 w-fit mx-auto lg:mx-0">
-         <button onClick={() => setActiveTab('profile')} className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${activeTab === 'profile' ? 'bg-white text-[#1B4332] shadow-sm' : 'text-[#1B4332]/40 hover:text-[#1B4332]'}`}><User size={14} /> My Profile</button>
-         <button onClick={() => setActiveTab('security')} className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${activeTab === 'security' ? 'bg-white text-[#1B4332] shadow-sm' : 'text-[#1B4332]/40 hover:text-[#1B4332]'}`}><Lock size={14} /> Password Settings</button>
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 mb-10 pb-8 border-b border-[#1B4332]/10">
+         <div className="flex items-center gap-6">
+            {/* 👤 HEADER AVATAR */}
+            <div className="relative group shrink-0">
+               <div className="w-20 h-20 rounded-[1.25rem] bg-gradient-to-br from-[#BC6C25] to-[#A65D1F] p-0.5 shadow-xl transition-transform hover:scale-105">
+                  <div className="w-full h-full rounded-[1.1rem] overflow-hidden bg-white relative">
+                     {avatarUrl ? <img src={avatarUrl} className={`w-full h-full object-cover ${uploading ? 'opacity-30' : 'opacity-100'}`} /> : <div className="w-full h-full flex items-center justify-center bg-[#1B4332]/5 text-[#1B4332]/20 italic text-[7px] font-black uppercase tracking-widest text-center px-2">No Image</div>}
+                     {uploading && <div className="absolute inset-0 flex items-center justify-center bg-white/40 backdrop-blur-sm"><Loader2 size={16} className="animate-spin text-[#BC6C25]" /></div>}
+                  </div>
+                  <button type="button" onClick={() => fileInputRef.current?.click()} className="absolute -bottom-1 -right-1 w-7 h-7 bg-[#BC6C25] text-white rounded-lg shadow-xl flex items-center justify-center border-2 border-white hover:bg-[#1B4332] transition-all"><Camera size={12} /></button>
+               </div>
+               <input type="file" ref={fileInputRef} onChange={handleAvatarUpload} className="hidden" accept="image/*" />
+            </div>
+
+            <div className="space-y-1">
+               <div className="flex items-center gap-3">
+                  <h1 className="text-xl font-black text-[#1B4332] tracking-tighter uppercase">Account <span className="text-[#BC6C25]">Profile</span></h1>
+                  <div className="px-3 py-1 bg-emerald-500/5 border border-emerald-500/10 rounded-full flex items-center gap-1.5">
+                    <ShieldCheck size={10} className="text-emerald-500" />
+                    <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest leading-none">Verified {profile?.role === 'customer' || profile?.role === 'buyer' ? 'Member' : 'Seller'}</span>
+                  </div>
+               </div>
+               <h2 className="text-sm font-black text-[#1B4332]/40 uppercase tracking-tight">{profileData.full_name || 'Artisan'}</h2>
+               <p className="text-[9px] font-black uppercase tracking-[0.3em] text-[#1B4332]/20">Manage your personal details</p>
+            </div>
+         </div>
+         
+         <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1 bg-[#1B4332]/5 p-1 rounded-xl w-fit">
+               <button onClick={() => setActiveTab('profile')} className={`px-5 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${activeTab === 'profile' ? 'bg-white text-[#1B4332] shadow-sm' : 'text-[#1B4332]/40 hover:text-[#1B4332]'}`}><User size={12} /> Profile</button>
+               <button onClick={() => setActiveTab('security')} className={`px-5 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${activeTab === 'security' ? 'bg-white text-[#1B4332] shadow-sm' : 'text-[#1B4332]/40 hover:text-[#1B4332]'}`}><Lock size={12} /> Security</button>
+            </div>
+            
+            <button 
+               onClick={handleUpdate} 
+               disabled={loading || !isDirty} 
+               className={`h-10 px-8 rounded-xl font-black uppercase text-[9px] tracking-[0.2em] transition-all flex items-center justify-center gap-2 ${isDirty ? 'bg-[#BC6C25] text-white shadow-lg hover:scale-105 active:scale-95' : 'bg-[#1B4332]/5 text-[#1B4332]/20 cursor-not-allowed'}`}
+            >
+               {loading ? <Loader2 size={14} className="animate-spin" /> : <> <Save size={14} /> {activeTab === 'profile' ? 'Save Changes' : 'Update Password'} </>}
+            </button>
+         </div>
       </div>
 
-      <AnimatePresence mode="wait">
-         {activeTab === 'profile' ? (
-            <motion.div key="profile-tab" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} className="space-y-10">
-               <div className="flex flex-col items-center justify-center space-y-4">
-                  <div className="relative group">
-                     <div className="w-32 h-32 rounded-[2rem] bg-gradient-to-br from-[#BC6C25] to-[#A65D1F] p-1 shadow-2xl">
-                        <div className="w-full h-full rounded-[1.8rem] overflow-hidden bg-white relative">
-                           {avatarUrl ? <img src={avatarUrl} className={`w-full h-full object-cover ${uploading ? 'opacity-30' : 'opacity-100'}`} /> : <div className="w-full h-full flex items-center justify-center bg-[#1B4332]/5 text-[#1B4332]/20 italic text-[9px] font-black uppercase tracking-widest">No Image</div>}
-                           {uploading && <div className="absolute inset-0 flex items-center justify-center bg-white/40 backdrop-blur-sm"><Loader2 size={24} className="animate-spin text-[#BC6C25]" /></div>}
-                        </div>
-                        <button type="button" onClick={() => fileInputRef.current?.click()} className="absolute -bottom-1 -right-1 w-10 h-10 bg-[#BC6C25] text-white rounded-xl shadow-xl flex items-center justify-center border-2 border-white"><Camera size={16} /></button>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
+         {/* 📝 LEFT COLUMN: FORM DETAILS */}
+         <div className="lg:col-span-8">
+            <AnimatePresence mode="wait">
+               {activeTab === 'profile' ? (
+                  <motion.div key="profile-tab" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                     <div className="space-y-1.5"><label className="text-[9px] font-black text-[#1B4332]/30 uppercase tracking-widest ml-1">Full Name</label><input className="w-full bg-[#1B4332]/5 border border-transparent rounded-xl px-5 py-3 text-[12px] font-bold text-[#1B4332] focus:bg-white focus:ring-2 focus:ring-[#BC6C25]/20 focus:border-[#BC6C25]/20 transition-all outline-none shadow-sm" value={profileData.full_name} onChange={e => setProfileData({...profileData, full_name: e.target.value})} /></div>
+                     <div className="space-y-1.5"><label className="text-[9px] font-black text-[#1B4332]/30 uppercase tracking-widest ml-1">Email Address</label><input className="w-full bg-[#1B4332]/5 border border-transparent rounded-xl px-5 py-3 text-[12px] font-bold text-[#1B4332]/30 cursor-not-allowed outline-none" value={user?.email} disabled /></div>
+                     <div className="space-y-1.5"><label className="text-[9px] font-black text-[#1B4332]/30 uppercase tracking-widest ml-1">Phone Number</label><input className="w-full bg-[#1B4332]/5 border border-transparent rounded-xl px-5 py-3 text-[12px] font-bold text-[#1B4332] focus:bg-white focus:ring-2 focus:ring-[#BC6C25]/20 focus:border-[#BC6C25]/20 transition-all outline-none shadow-sm" value={profileData.phone_number} onChange={e => setProfileData({...profileData, phone_number: e.target.value})} /></div>
+                     <div className="space-y-1.5"><label className="text-[9px] font-black text-[#1B4332]/30 uppercase tracking-widest ml-1">Boutique Address</label><input className="w-full bg-[#1B4332]/5 border border-transparent rounded-xl px-5 py-3 text-[12px] font-bold text-[#1B4332] focus:bg-white focus:ring-2 focus:ring-[#BC6C25]/20 focus:border-[#BC6C25]/20 transition-all outline-none shadow-sm" value={profileData.address} onChange={e => setProfileData({...profileData, address: e.target.value})} /></div>
+                  </motion.div>
+               ) : (
+                  <motion.div key="security-tab" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} className="space-y-5 max-w-sm">
+                     <div className="relative">
+                        <input type={showPassword ? "text" : "password"} className="w-full bg-[#1B4332]/5 border border-transparent rounded-xl px-5 py-3.5 text-[12px] font-bold text-[#1B4332] focus:bg-white focus:ring-2 focus:ring-[#BC6C25]/20 transition-all outline-none shadow-sm" placeholder="Enter New Password" value={securityData.password} onChange={e => setSecurityData({...securityData, password: e.target.value})} />
+                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#1B4332]/20 hover:text-[#BC6C25] transition-colors">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
                      </div>
-                     <input type="file" ref={fileInputRef} onChange={handleAvatarUpload} className="hidden" accept="image/*" />
-                  </div>
-                  <div className="text-center space-y-1">
-                     <h3 className="text-lg font-black text-[#1B4332] uppercase tracking-tight">{profile?.full_name || 'Artisan'}</h3>
-                     <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/5 border border-emerald-500/10 rounded-full"><ShieldCheck size={10} className="text-emerald-500" /><span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Verified Seller</span></div>
-                  </div>
-               </div>
+                     <input type={showPassword ? "text" : "password"} className="w-full bg-[#1B4332]/5 border border-transparent rounded-xl px-5 py-3.5 text-[12px] font-bold text-[#1B4332] focus:bg-white focus:ring-2 focus:ring-[#BC6C25]/20 transition-all outline-none shadow-sm" placeholder="Confirm New Password" value={securityData.confirmPassword} onChange={e => setSecurityData({...securityData, confirmPassword: e.target.value})} />
+                  </motion.div>
+               )}
+            </AnimatePresence>
+         </div>
 
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-1"><label className="text-[10px] font-black text-[#1B4332]/40 uppercase tracking-widest ml-1">Full Name</label><input className="w-full bg-[#1B4332]/5 border-none rounded-xl px-4 py-3 text-[13px] font-bold text-[#1B4332] focus:bg-white focus:ring-2 focus:ring-[#BC6C25]/20 transition-all outline-none" value={profileData.full_name} onChange={e => setProfileData({...profileData, full_name: e.target.value})} /></div>
-                  <div className="space-y-1"><label className="text-[10px] font-black text-[#1B4332]/40 uppercase tracking-widest ml-1">Email Address</label><input className="w-full bg-[#1B4332]/5 border-none rounded-xl px-4 py-3 text-[13px] font-bold text-[#1B4332]/40 cursor-not-allowed outline-none" value={user?.email} disabled /></div>
-                  <div className="space-y-1"><label className="text-[10px] font-black text-[#1B4332]/40 uppercase tracking-widest ml-1">Phone Number</label><input className="w-full bg-[#1B4332]/5 border-none rounded-xl px-4 py-3 text-[13px] font-bold text-[#1B4332] focus:bg-white focus:ring-2 focus:ring-[#BC6C25]/20 transition-all outline-none" value={profileData.phone_number} onChange={e => setProfileData({...profileData, phone_number: e.target.value})} /></div>
-                  <div className="space-y-1"><label className="text-[10px] font-black text-[#1B4332]/40 uppercase tracking-widest ml-1">Boutique Address</label><input className="w-full bg-[#1B4332]/5 border-none rounded-xl px-4 py-3 text-[13px] font-bold text-[#1B4332] focus:bg-white focus:ring-2 focus:ring-[#BC6C25]/20 transition-all outline-none" value={profileData.address} onChange={e => setProfileData({...profileData, address: e.target.value})} /></div>
+         {/* 🛡️ RIGHT COLUMN: SECURITY NOTES */}
+         <div className="lg:col-span-4">
+            <div className="p-6 bg-[#BC6C25]/5 rounded-2xl border border-[#BC6C25]/10 space-y-4">
+               <div className="flex items-center gap-3">
+                  <ShieldAlert size={18} className="text-[#BC6C25]" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[#BC6C25]">Security Protocol</span>
                </div>
-            </motion.div>
-         ) : (
-            <motion.div key="security-tab" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="max-w-xl mx-auto space-y-8">
-               <div className="text-center space-y-2 mb-8">
-                  <div className="w-16 h-16 bg-[#BC6C25]/5 rounded-[1.5rem] flex items-center justify-center mx-auto mb-4"><KeyRound size={32} className="text-[#BC6C25]" /></div>
-                  <h3 className="text-lg font-black text-[#1B4332] uppercase tracking-widest">Update Password</h3>
-                  <p className="text-[10px] text-[#1B4332]/40 font-bold uppercase tracking-widest">Manage your administrative access</p>
+               <p className="text-[9px] font-bold text-[#BC6C25]/60 leading-relaxed uppercase tracking-tight italic">
+                  Keep your sovereign credentials updated to maintain account vault integrity. Changes take effect across all portal nodes immediately.
+               </p>
+               <div className="pt-4 border-t border-[#BC6C25]/10 flex items-center gap-2">
+                  <KeyRound size={12} className="text-[#BC6C25]/40" />
+                  <span className="text-[7px] font-black uppercase text-[#BC6C25]/30">Encrypted Sovereign Vault</span>
                </div>
-
-               <div className="space-y-4">
-                  <div className="relative">
-                     <input type={showPassword ? "text" : "password"} className="w-full bg-[#1B4332]/5 border-none rounded-xl px-5 py-4 text-[13px] font-bold text-[#1B4332] focus:bg-white focus:ring-2 focus:ring-[#BC6C25]/20 transition-all outline-none" placeholder="Enter New Password" value={securityData.password} onChange={e => setSecurityData({...securityData, password: e.target.value})} />
-                     <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#1B4332]/20 hover:text-[#BC6C25] transition-colors">{showPassword ? <EyeOff size={16} /> : <Eye size={16} />}</button>
-                  </div>
-                  <input type={showPassword ? "text" : "password"} className="w-full bg-[#1B4332]/5 border-none rounded-xl px-5 py-4 text-[13px] font-bold text-[#1B4332] focus:bg-white focus:ring-2 focus:ring-[#BC6C25]/20 transition-all outline-none" placeholder="Confirm New Password" value={securityData.confirmPassword} onChange={e => setSecurityData({...securityData, confirmPassword: e.target.value})} />
-               </div>
-
-               <div className="flex items-start gap-4 p-5 bg-[#BC6C25]/5 rounded-2xl border border-[#BC6C25]/10">
-                  <ShieldAlert size={18} className="text-[#BC6C25] shrink-0" />
-                  <p className="text-[10px] font-bold text-[#BC6C25] leading-relaxed uppercase tracking-tight italic">Security Note: Your new password must be at least 6 characters long and will take effect immediately.</p>
-               </div>
-            </motion.div>
-         )}
-      </AnimatePresence>
-
-      <div className="mt-12 pt-8 border-t border-[#1B4332]/5 flex justify-center">
-         <button onClick={handleUpdate} disabled={loading || !isDirty} className={`h-14 px-16 rounded-[1.5rem] font-black uppercase text-[11px] tracking-[0.2em] transition-all flex items-center justify-center gap-3 ${isDirty ? 'bg-[#BC6C25] text-white shadow-2xl hover:scale-105 active:scale-95' : 'bg-[#1B4332]/5 text-[#1B4332]/20 cursor-not-allowed'}`}>
-             {loading ? <Loader2 size={18} className="animate-spin" /> : <> <Save size={18} /> {activeTab === 'profile' ? 'Save Profile' : 'Update Password'} </>}
-         </button>
+            </div>
+         </div>
       </div>
     </div>
   );

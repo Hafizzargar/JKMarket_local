@@ -13,10 +13,9 @@ function ProfileContent() {
   return (
     <main className="min-h-screen bg-[#FDFBF7] pt-4 pb-20 px-6 sm:px-8">
       <div className="max-w-7xl mx-auto">
-        <div className="bg-[#0D1110] rounded-[2.5rem] p-8 sm:p-12 shadow-2xl border border-[#1B4332]/5 relative overflow-hidden">
-          {/* Decorative background elements */}
-          <div className="absolute top-0 right-0 w-96 h-96 bg-[#BC6C25]/5 blur-[120px] rounded-full -mr-48 -mt-48" />
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#1B4332]/5 blur-[120px] rounded-full -ml-48 -mb-48" />
+        <div className="bg-white rounded-[2rem] p-8 sm:p-12 shadow-[0_20px_50px_-15px_rgba(27,67,50,0.06)] border border-[#1B4332]/5 relative overflow-hidden">
+          {/* Subtle Ambient Glow */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-[#BC6C25]/2 blur-3xl rounded-full -mr-32 -mt-32" />
           
           <div className="relative z-10">
             <ProfileNode isModal={false} />

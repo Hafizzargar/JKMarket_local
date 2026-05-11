@@ -1,15 +1,14 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 import { 
   User, Mail, Phone, ShieldCheck, Camera, Loader2, Save, Globe,
-  Shield, Zap
+  Shield, Zap, Building2
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
-
 import { useRouter } from 'next/navigation';
+import { ForgeInput } from './shared/ForgeComponents';
 
 export default function ProfileForge({ profile, onUpdate }) {
   const router = useRouter();
@@ -34,8 +33,6 @@ export default function ProfileForge({ profile, onUpdate }) {
 
   const handleUpdateProfile = async (e) => {
     if (e) e.preventDefault();
-    console.log('🛡️ IDENTITY UPDATE INITIATED');
-    
     setLoading(true);
     try {
       if (!profile?.id) throw new Error('User ID missing');
@@ -71,126 +68,107 @@ export default function ProfileForge({ profile, onUpdate }) {
 
   return (
     <div className="w-full space-y-12 max-w-6xl mx-auto">
-      {/* 🏹 HEADER ACTION BAR */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between border-b border-[#1B4332]/5 pb-8 gap-6">
-         <div>
-            <h2 className="text-2xl font-black text-[#1B4332] uppercase tracking-[0.3em] italic">My Profile</h2>
-            <p className="text-[10px] text-[#1B4332]/30 uppercase mt-2 tracking-widest font-bold italic max-w-xs">Update your personal and account details</p>
-         </div>
-         <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2 px-4 py-2 bg-[#BC6C25]/5 border border-[#BC6C25]/10 rounded-full">
-               <ShieldCheck size={10} className="text-[#BC6C25]" />
-               <span className="text-[8px] font-black text-[#BC6C25] uppercase tracking-widest">Clearance Level 5</span>
-            </div>
-            {isDirty && (
-              <button 
-                  onClick={handleUpdateProfile}
-                  disabled={loading} 
-                  className="h-12 px-8 rounded-xl bg-[#BC6C25] hover:bg-[#A65D1F] transition-all shadow-2xl shadow-[#BC6C25]/20 flex items-center justify-center gap-3 group shrink-0"
-              >
-                  {loading ? (
-                    <Loader2 size={14} className="animate-spin text-white" />
-                  ) : (
-                    <>
-                       <Save size={12} className="text-white group-hover:scale-110 transition-transform" />
-                       <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white">Save Changes</span>
-                    </>
-                  )}
-              </button>
-            )}
-         </div>
-      </header>
+      <div className="flex flex-col lg:flex-row gap-16 items-start pt-4 relative">
+         {/* 🏹 COMMIT BUTTON - FLOATING OR TOP-RIGHT */}
+         {isDirty && (
+           <button 
+               onClick={handleUpdateProfile}
+               disabled={loading} 
+               className="absolute top-0 right-0 h-11 px-6 rounded-xl bg-[#BC6C25] hover:bg-[#A65D1F] transition-all shadow-xl shadow-[#BC6C25]/20 flex items-center justify-center gap-3 group z-10"
+           >
+               {loading ? (
+                 <Loader2 size={14} className="animate-spin text-white" />
+               ) : (
+                 <>
+                    <Save size={14} className="text-white group-hover:scale-110 transition-transform" />
+                    <span className="text-[9px] font-black uppercase tracking-widest text-white">Save Changes</span>
+                 </>
+               )}
+           </button>
+         )}
 
-      <div className="flex flex-col lg:flex-row gap-12 items-start">
          {/* 📸 AVATAR / DESIGNATION */}
-         <div className="w-full lg:w-64 flex flex-col items-center gap-6 shrink-0">
+         <div className="w-full lg:w-72 flex flex-col items-center gap-8 shrink-0 bg-white p-10 rounded-[3rem] border border-[#1B4332]/5 shadow-xl shadow-[#1B4332]/[0.02]">
             <div className="relative group">
-               <div className="w-32 h-32 rounded-[2.5rem] bg-gradient-to-br from-[#BC6C25] to-[#E87C2A] flex items-center justify-center text-white text-4xl font-black shadow-2xl shadow-[#BC6C25]/20 border-4 border-white">
+               <div className="w-40 h-40 rounded-[3rem] bg-gradient-to-br from-[#BC6C25] to-[#E87C2A] flex items-center justify-center text-white text-5xl font-black shadow-2xl shadow-[#BC6C25]/30 border-[6px] border-white overflow-hidden relative">
                   {formData.full_name.substring(0, 2).toUpperCase() || 'AD'}
+                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                     <Camera size={32} className="text-white/80" />
+                  </div>
                </div>
-               <button className="absolute -bottom-2 -right-2 w-10 h-10 bg-white border border-[#1B4332]/10 rounded-xl flex items-center justify-center text-[#1B4332]/20 hover:text-[#BC6C25] transition-all shadow-xl">
-                  <Camera size={18} />
+               <button className="absolute -bottom-2 -right-2 w-12 h-12 bg-white border border-[#1B4332]/10 rounded-2xl flex items-center justify-center text-[#1B4332]/20 hover:text-[#BC6C25] transition-all shadow-2xl">
+                  <Camera size={20} />
                </button>
             </div>
-            <div className="text-center space-y-2">
-               <p className="text-[11px] font-black text-[#BC6C25] uppercase tracking-widest leading-none">Super Admin</p>
-               <p className="text-[8px] font-black text-[#1B4332]/20 uppercase tracking-[0.2em] px-4 leading-relaxed italic">Administrator</p>
+            <div className="text-center space-y-3">
+               <div className="px-4 py-1.5 bg-[#1B4332]/5 rounded-lg border border-[#1B4332]/10 inline-block">
+                  <p className="text-[11px] font-black text-[#1B4332] uppercase tracking-widest">Super Admin</p>
+               </div>
+               <p className="text-[9px] font-black text-[#BC6C25]/40 uppercase tracking-[0.3em] leading-relaxed italic">Platform Architect</p>
             </div>
          </div>
 
-         {/* 📝 FIELDS GRID - SINGLE SCREEN STYLE */}
-         <div className="flex-1 w-full space-y-10">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-               {/* 📧 EMAIL - LOCKED */}
-               <div className="bg-[#1B4332]/5 border border-[#1B4332]/5 rounded-2xl p-5 space-y-1 opacity-60 cursor-not-allowed">
-                  <label className="text-[7px] font-black uppercase text-[#1B4332]/40 tracking-widest flex items-center gap-2"><Mail size={8} /> Account Email</label>
-                  <p className="text-[12px] font-bold text-[#1B4332]/70 truncate">{formData.email}</p>
-               </div>
-
-               {/* 📞 PHONE */}
-               <div className="bg-[#1B4332]/[0.02] border border-[#1B4332]/10 rounded-2xl p-5 space-y-1 focus-within:border-[#BC6C25]/40 transition-all shadow-sm">
-                  <label className="text-[7px] font-black uppercase text-[#BC6C25] tracking-widest flex items-center gap-2"><Phone size={8} /> Phone Number</label>
-                  <input 
-                     className="w-full bg-transparent border-none p-0 text-[12px] font-bold text-[#1B4332] focus:outline-none placeholder:text-[#1B4332]/10"
-                     value={formData.phone_number} 
-                     onChange={e => { setFormData({...formData, phone_number: e.target.value}); }}
-                     placeholder="+91 XXXXX XXXXX"
-                  />
-               </div>
-
-               {/* 🛡️ ROLE - LOCKED */}
-               <div className="bg-[#1B4332]/5 border border-[#1B4332]/5 rounded-2xl p-5 space-y-1 opacity-60 cursor-not-allowed">
-                  <label className="text-[7px] font-black uppercase text-[#1B4332]/40 tracking-widest flex items-center gap-2"><Zap size={8} /> Access Role</label>
-                  <p className="text-[12px] font-bold text-[#1B4332]/70 truncate">Super Admin</p>
-               </div>
-
-               {/* 🌍 REGION - LOCKED */}
-               <div className="bg-[#1B4332]/5 border border-[#1B4332]/5 rounded-2xl p-5 space-y-1 opacity-60 cursor-not-allowed">
-                  <label className="text-[7px] font-black uppercase text-[#1B4332]/40 tracking-widest flex items-center gap-2"><Globe size={8} /> Company</label>
-                  <p className="text-[12px] font-bold text-[#1B4332]/70 truncate">Kashmir Direct</p>
-               </div>
+         {/* 📝 FIELDS GRID */}
+         <div className="flex-1 w-full space-y-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+               <ForgeInput 
+                  label="Legal Full Name"
+                  icon={User}
+                  placeholder="Enter your full name"
+                  value={formData.full_name}
+                  onChange={(e) => setFormData({...formData, full_name: e.target.value})}
+               />
+               <ForgeInput 
+                  label="Account Email"
+                  icon={Mail}
+                  value={formData.email}
+                  disabled={true}
+                  placeholder="locked@system.com"
+               />
+               <ForgeInput 
+                  label="Contact Number"
+                  icon={Phone}
+                  placeholder="+91 XXXXX XXXXX"
+                  value={formData.phone_number}
+                  onChange={(e) => setFormData({...formData, phone_number: e.target.value})}
+               />
+               <ForgeInput 
+                  label="Administrative Node"
+                  icon={Globe}
+                  placeholder="Office Location"
+                  value={formData.address}
+                  onChange={(e) => setFormData({...formData, address: e.target.value})}
+               />
             </div>
 
-            {/* EDITABLE DETAIL ROW */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-               <div className="space-y-3">
-                  <label className="text-[8px] font-black uppercase text-[#1B4332]/40 tracking-widest ml-1">Full Name</label>
-                  <div className="relative">
-                     <User className="absolute left-4 top-1/2 -translate-y-1/2 text-[#1B4332]/10" size={14} />
-                     <input 
-                        className="w-full bg-white border border-[#1B4332]/10 rounded-xl pl-12 pr-4 py-4 text-[11px] font-bold text-[#1B4332] focus:outline-none focus:border-[#BC6C25]/60 transition-colors shadow-sm"
-                        value={formData.full_name} 
-                        onChange={e => { setFormData({...formData, full_name: e.target.value}); }} 
-                     />
-                  </div>
-               </div>
-               <div className="space-y-3">
-                  <label className="text-[8px] font-black uppercase text-[#1B4332]/40 tracking-widest ml-1">Office Address</label>
-                  <div className="relative">
-                     <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-[#1B4332]/10" size={14} />
-                     <input 
-                        className="w-full bg-white border border-[#1B4332]/10 rounded-xl pl-12 pr-4 py-4 text-[11px] font-bold text-[#1B4332] focus:outline-none focus:border-[#BC6C25]/60 transition-colors shadow-sm"
-                        value={formData.address} 
-                        onChange={e => { setFormData({...formData, address: e.target.value}); }} 
-                     />
-                  </div>
-               </div>
-            </div>
-
-            {/* 🛡️ SECURITY STATUS */}
-            <div className="p-8 rounded-[2rem] bg-gradient-to-br from-[#BC6C25]/5 to-white border border-[#BC6C25]/10 flex items-center justify-between shadow-sm">
-               <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-[#BC6C25]/10 flex items-center justify-center border border-[#BC6C25]/20">
-                     <Shield size={20} className="text-[#BC6C25]" />
+            {/* READ-ONLY STATUS ROW */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+               <div className="p-5 bg-[#1B4332]/[0.02] border border-[#1B4332]/5 rounded-2xl flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-white border border-[#1B4332]/5 flex items-center justify-center text-[#1B4332]/20">
+                     <Zap size={18} />
                   </div>
                   <div>
-                     <p className="text-[10px] font-black text-[#1B4332] uppercase tracking-wider">Account Security</p>
-                     <p className="text-[8px] font-bold text-[#1B4332]/30 uppercase tracking-tighter mt-0.5">Identity protection active</p>
+                     <p className="text-[8px] font-black text-[#1B4332]/30 uppercase tracking-widest">Authority</p>
+                     <p className="text-[11px] font-black text-[#1B4332] uppercase">Level 5</p>
                   </div>
                </div>
-               <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#2ECC71] animate-pulse" />
-                  <p className="text-[7px] font-black text-[#2ECC71] uppercase tracking-widest">Secured</p>
+               <div className="p-5 bg-[#1B4332]/[0.02] border border-[#1B4332]/5 rounded-2xl flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-white border border-[#1B4332]/5 flex items-center justify-center text-[#1B4332]/20">
+                     <Building2 size={18} />
+                  </div>
+                  <div>
+                     <p className="text-[8px] font-black text-[#1B4332]/30 uppercase tracking-widest">Entity</p>
+                     <p className="text-[11px] font-black text-[#1B4332] uppercase tracking-tighter">Kashmir Direct</p>
+                  </div>
+               </div>
+               <div className="p-5 bg-emerald-500/[0.03] border border-emerald-500/10 rounded-2xl flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-white border border-emerald-500/10 flex items-center justify-center text-emerald-500">
+                     <ShieldCheck size={18} />
+                  </div>
+                  <div>
+                     <p className="text-[8px] font-black text-emerald-600/40 uppercase tracking-widest">Security</p>
+                     <p className="text-[11px] font-black text-emerald-600 uppercase">Harden Active</p>
+                  </div>
                </div>
             </div>
          </div>

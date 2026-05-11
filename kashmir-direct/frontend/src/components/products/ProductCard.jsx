@@ -4,10 +4,12 @@ import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { useStore } from '../../store/useStore';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import BoutiqueCard from '../ui/BoutiqueCard';
-import { ShoppingCart } from 'lucide-react';
+import Modal from '../ui/Modal';
+import { ShoppingCart, Sparkles, MapPin, Star } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ProductCard({ product }) {
   const { 
@@ -18,15 +20,17 @@ export default function ProductCard({ product }) {
     category, 
     location, 
     images, 
+    description,
     rating = 4.9, 
     reviews = 128, 
     tags = ['Hand-woven', 'Pure'] 
   } = product;
 
+  const pathname = usePathname();
   const displayImage = images && images.length > 0 ? images[0] : null;
   const { user, isAdmin, profile } = useAuth();
   const { cart, addToCart, updateQuantity, removeFromCart } = useCart();
-  const { wishlist, toggleWishlist } = useStore();
+  const { wishlist, toggleWishlist, setSelectedProduct } = useStore();
   const router = useRouter();
   const [adding, setAdding] = useState(false);
 
@@ -34,8 +38,15 @@ export default function ProductCard({ product }) {
   const cartItem = cart?.find(item => item.id === product.id);
   const quantity = cartItem?.quantity || 0;
 
-  // 🛡️ ACTION GATE: Only allow buyers to interact with cart/wishlist
-  const isAuthorizedBuyer = user && !isAdmin && (profile?.role === 'customer' || profile?.role === 'buyer');
+  // 🛡️ ACTION GATE: Only allow buyers to interact with cart/wishlist INSIDE the portal
+  const isInsidePortal = pathname?.startsWith('/buyer');
+  const isAuthorizedBuyer = user && !isAdmin && (profile?.role === 'customer' || profile?.role === 'buyer') && isInsidePortal;
+
+  const handleView = () => {
+    setSelectedProduct(product);
+    const targetPath = isInsidePortal ? '/buyer/product-details' : '/product-details';
+    router.push(targetPath);
+  };
 
   const handleWishlist = () => {
     if (!isAuthorizedBuyer) {
@@ -54,7 +65,7 @@ export default function ProductCard({ product }) {
       router.push('/login');
       return;
     }
-    toggleWishlist(product);
+    toggleWishlist(product, user.id);
     if (!isInWishlist) {
       toast.success('Added to wishlist', { icon: '❤️' });
     }
@@ -111,6 +122,7 @@ export default function ProductCard({ product }) {
       onAction={handleAddToCart}
       onDecrement={handleDecrement}
       onWishlist={handleWishlist}
+      onView={handleView}
       actionIcon={ShoppingCart}
     />
   );

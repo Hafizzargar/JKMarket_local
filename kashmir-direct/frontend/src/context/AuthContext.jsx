@@ -4,28 +4,28 @@ import { createContext, useContext, useEffect, useState, useCallback } from 'rea
 import { supabase } from '../lib/supabase';
 import { useStore } from '../store/useStore';
 import { identityGuard } from '../services/AuthService';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const AuthContext = createContext({});
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const { profile, setProfile, clearCache } = useStore();
+  const { profile, setProfile, clearCache, fetchWishlist } = useStore();
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const fetchProfile = useCallback(async (uid, currentUser = null, force = false) => {
     if (!force && profile && profile.id === uid) return;
 
-    console.log('🛡️ [Identity Vault] Syncing Registry for:', uid);
+    console.log('🛡️ [Identity Vault] Loading Profile for:', uid);
     
-    // ⏱️ FETCH TIMEOUT: Don't let a slow DB hang the entire app
     const fetchTimeout = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Profile Sync Timeout')), 6000)
+      setTimeout(() => reject(new Error('Profile Sync Timeout')), 10000)
     );
 
     try {
       const fetchPromise = (async () => {
-        // 1. Fetch base profile
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('*')
@@ -36,26 +36,27 @@ export const AuthProvider = ({ children }) => {
           throw new Error(profileError?.message || 'Profile missing');
         }
 
-        // 2. Fetch seller details if applicable
         if (profileData.role === 'seller' || profileData.role === 'shopkeeper') {
           const { data: sellerData } = await supabase
             .from('sellers')
             .select('*')
             .eq('user_id', uid)
             .maybeSingle();
-          return { ...profileData, seller: sellerData };
+          return { 
+            ...profileData, 
+            seller: sellerData,
+            isApproved: sellerData?.is_verified || false 
+          };
         }
-        return profileData;
+        return { ...profileData, isApproved: true };
       })();
 
       const finalProfile = await Promise.race([fetchPromise, fetchTimeout]);
       setProfile(finalProfile);
-      console.log('🛡️ [Identity Vault] Registry Synced.');
+      console.log('🛡️ [Identity Vault] Profile Synced.');
 
     } catch (err) {
-      console.warn('🛡️ [Identity Vault] Registry sync fallback:', err.message);
-      
-      // 🩹 VIRTUAL IDENTITY FALLBACK: Always set a profile so the UI can render
+      console.warn('🛡️ [Identity Vault] Using local profile (Sync timed out)');
       if (currentUser) {
         const metadata = currentUser.user_metadata || {};
         setProfile({
@@ -74,36 +75,29 @@ export const AuthProvider = ({ children }) => {
       try {
         const { data, error } = await supabase.auth.getSession();
         if (error) throw error;
-        
         const currentUser = data?.session?.user ?? null;
         setUser(currentUser);
-        
         if (currentUser) {
           await fetchProfile(currentUser.id, currentUser);
+          fetchWishlist(currentUser.id);
         }
       } catch (err) {
-        console.error('⚖️ [Identity Vault] Session recovery failed:', err);
         setUser(null);
       } finally {
         setLoading(false);
       }
     };
-
     getSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       const currentUser = session?.user ?? null;
-      console.log('🛡️ [Identity Vault] Auth State Change:', _event);
-      
       setUser(currentUser);
-      
       if (currentUser) {
         await fetchProfile(currentUser.id, currentUser);
+        fetchWishlist(currentUser.id);
       } else {
         setProfile(null);
       }
-      
-      // 🛡️ ALWAYS RELEASE LOADING
       setLoading(false);
     });
 
@@ -121,22 +115,62 @@ export const AuthProvider = ({ children }) => {
     signUp: (data) => identityGuard.forgeIdentity(data.email, data.password, data.options?.data),
     signIn: (data) => identityGuard.executeAuthentication(data.email, data.password),
     signOut: async () => {
-      localStorage.clear();
-      setUser(null);
-      setProfile(null);
-      clearCache();
+      setIsLoggingOut(true);
       try {
+        // 1. 🛡️ TERMINATE REMOTE SESSION
         await identityGuard.terminateSession();
-      } catch (err) { console.warn(err.message); }
+        
+        // 2. 🧹 PURGE LOCAL IDENTITY & COOKIES
+        setUser(null);
+        setProfile(null);
+        localStorage.clear();
+        sessionStorage.clear();
+        clearCache();
+
+        // 🍪 NUCLEAR COOKIE CLEAR: Wipe all cookies for this domain
+        const cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i];
+            const eqPos = cookie.indexOf("=");
+            const name = eqPos > -1 ? cookie.substring(0, eqPos) : cookie;
+            document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+        }
+        
+        // 3. 🚀 CLEAN REDIRECT
+        window.location.href = '/login';
+      } catch (err) { 
+        console.warn('🛡️ [Identity Vault] Logout Warning:', err.message);
+        window.location.href = '/login';
+      }
     },
     user,
     profile,
     isAdmin: profile?.role === 'admin' || profile?.role === 'superadmin' || user?.user_metadata?.role === 'admin' || user?.email === 'hafezzargar987@gmail.com',
-    loading: loading || isRefreshing,
-    refreshProfile
+    loading: loading || isRefreshing || isLoggingOut,
+    refreshProfile,
+    isLoggingOut
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+      <AnimatePresence>
+        {isLoggingOut && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 z-[10000] bg-[#FDFBF7] flex items-center justify-center flex-col gap-6 backdrop-blur-2xl transition-all duration-500"
+          >
+             <div className="w-16 h-16 border-4 border-[#1B4332]/10 border-t-[#BC6C25] rounded-full animate-spin" />
+             <div className="flex flex-col items-center">
+                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[#1B4332]/40 animate-pulse">Identity Vault</span>
+                <p className="text-[12px] font-black uppercase tracking-[0.2em] text-[#1B4332] mt-2 italic font-serif lowercase">Terminating Session...</p>
+             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => useContext(AuthContext);

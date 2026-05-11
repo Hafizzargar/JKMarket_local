@@ -9,15 +9,22 @@ import MarketInsight from '@/components/admin/MarketInsight';
 export default function DashboardContent() {
   const { isAdmin } = useAuth();
   const [isDataLoading, setIsDataLoading] = useState(true);
-  const hasFetchedStats = useRef(false);
 
   // 🛰️ GLOBAL STATE
   const [stats, setStats] = useState({ products: 0, sellers: 0, managers: 0, buyers: 0, pending: 0, revenue: '₹0' });
 
+  // 🛰️ GLOBAL SYNC LISTENER (Connected to Header Refresh)
   useEffect(() => {
-    if (isAdmin && !hasFetchedStats.current) {
+    const handleGlobalSync = () => {
       fetchStats();
-      hasFetchedStats.current = true;
+    };
+    window.addEventListener('platform-sync', handleGlobalSync);
+    return () => window.removeEventListener('platform-sync', handleGlobalSync);
+  }, []);
+
+  useEffect(() => {
+    if (isAdmin) {
+      fetchStats();
     }
   }, [isAdmin]);
 
@@ -45,14 +52,7 @@ export default function DashboardContent() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-12">
-       <div className="page-header mb-12">
-          <div className="flex items-center gap-2 mb-2">
-             <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#1B4332]/40">Live Stats</span>
-          </div>
-          <h1 className="text-4xl font-black text-[#1B4332] tracking-tighter leading-none">Sales <span className="text-[#BC6C25] font-serif italic font-normal lowercase">Overview</span></h1>
-          <p className="text-[12px] font-medium text-[#1B4332]/40 italic mt-2">Checking how the marketplace is doing today.</p>
-       </div>
+       {/* 📊 ACTIVITY INDICATOR */}
        <StatGrid stats={stats} />
        <MarketInsight />
     </motion.div>

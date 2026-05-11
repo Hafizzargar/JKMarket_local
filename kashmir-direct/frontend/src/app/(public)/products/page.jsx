@@ -7,12 +7,21 @@ import ProductGrid from '../../../components/products/ProductGrid';
 import { Search, SlidersHorizontal, PackageSearch, Sparkles, ChevronDown, Lock } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import Link from 'next/link';
+import { useRouter, usePathname } from 'next/navigation';
 
 export default function ProductsPage() {
-  const { user } = useAuth();
+  const { user, profile, isAdmin } = useAuth();
   const { products, isProductsLoading: loading, fetchProducts } = useStore();
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
+  const router = useRouter();
+  const pathname = usePathname();
+ 
+  useEffect(() => {
+    if (user && !isAdmin && (profile?.role === 'customer' || profile?.role === 'buyer') && !pathname.startsWith('/buyer')) {
+       window.location.replace('/buyer/products');
+    }
+  }, [user, profile, isAdmin, router, pathname]);
 
   useEffect(() => {
     fetchProducts(user);
@@ -44,28 +53,19 @@ export default function ProductsPage() {
   );
 
   return (
-    <div className="relative min-h-screen bg-[#FDFBF7] pt-32 sm:pt-40">
+    <div className="relative min-h-screen bg-[#FDFBF7] pt-2 sm:pt-4">
       {/* 🏔️ AMBIENT BACKGROUND */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-[#BC6C25]/[0.03] rounded-full blur-[120px]" />
         <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-[#1B4332]/[0.03] rounded-full blur-[150px]" />
       </div>
 
-      <div className={`max-w-7xl mx-auto px-[clamp(1rem,5vw,2.5rem)] relative z-10 transition-all duration-700 ${user ? 'py-[clamp(1.5rem,4vh,3rem)]' : 'py-[clamp(3rem,8vh,6rem)]'}`}>
+      <div className={`max-w-7xl mx-auto px-[clamp(1rem,5vw,2.5rem)] relative z-10 transition-all duration-700 py-4`}>
         {/* 🏛️ SOVEREIGN HEADER */}
-        <header className={`${user ? 'mb-[clamp(1.5rem,3vh,2.5rem)]' : 'mb-[clamp(3rem,6vh,5rem)]'} space-y-[clamp(0.75rem,1.5vh,1.5rem)] text-center lg:text-left`}>
-           <motion.div
-             initial={{ opacity: 0, y: 20 }}
-             animate={{ opacity: 1, y: 0 }}
-             className="inline-flex items-center gap-3 px-[clamp(10px,1vw,14px)] py-[clamp(4px,0.4vw,6px)] rounded-full border border-[#1B4332]/10 bg-white/50 backdrop-blur-md"
-           >
-              <Sparkles size={12} className="text-[#BC6C25]" />
-              <span className="text-[clamp(7px,0.7vw,9px)] font-black tracking-[0.4em] uppercase text-[#1B4332]/40">
-                {user ? `Welcome back, Member` : 'Verified Heritage Path'}
-              </span>
-           </motion.div>
+        <header className="mb-4 space-y-4 text-center lg:text-left">
 
-           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-[clamp(1.5rem,3vw,2.5rem)]">
+
+           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
               {!user && (
                 <div className="space-y-[clamp(0.75rem,1vh,1rem)]">
                    <h1 className="text-[clamp(2rem,6vw,4rem)] font-black text-[#1B4332] tracking-tighter leading-[0.9]">
@@ -94,7 +94,7 @@ export default function ProductsPage() {
         </header>
 
         {/* 🔍 COMMAND SEARCH NODE (COMPACT & SLEEK) */}
-        <div className="mt-[clamp(1.5rem,4vh,3.5rem)] mb-[clamp(1.5rem,4vh,3.5rem)] flex flex-col md:flex-row gap-[clamp(0.75rem,1.5vw,1.5rem)] max-w-5xl mx-auto w-full">
+        <div className="mt-6 mb-6 flex flex-col md:flex-row gap-[clamp(0.75rem,1.5vw,1.5rem)] max-w-5xl mx-auto w-full">
           <div className="relative flex-grow group">
             <div className="absolute inset-y-0 left-0 pl-[clamp(1.25rem,1.8vw,1.75rem)] flex items-center pointer-events-none">
               <Search size={20} className="text-[#1B4332]/10 group-focus-within:text-[#BC6C25] transition-all duration-500" />

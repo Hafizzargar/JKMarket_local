@@ -81,18 +81,101 @@ export const useStore = create((set, get) => ({
     }
   },
 
-  // ❤️ WISHLIST VAULT
+  // ❤️ WISHLIST VAULT (Supabase Persisted)
   wishlist: [],
-  toggleWishlist: (product) => {
+  isWishlistLoading: false,
+
+  fetchWishlist: async (userId) => {
+    if (!userId) return;
+    set({ isWishlistLoading: true });
+    try {
+      // 🕵️ TRY 'wishlist' FIRST, FALLBACK TO 'wishlist_items'
+      let { data, error } = await supabase
+        .from('wishlist')
+        .select('*, products(*)')
+        .eq('user_id', userId);
+      
+      // If table doesn't exist (42P01 in Postgres), try 'wishlist_items'
+      if (error && error.code === '42P01') {
+        const fallback = await supabase
+          .from('wishlist_items')
+          .select('*, products(*)')
+          .eq('user_id', userId);
+        data = fallback.data;
+        error = fallback.error;
+      }
+
+      if (error) throw error;
+      
+      const items = data?.map(item => ({
+        ...item.products,
+        wishlist_id: item.id
+      })) || [];
+
+      set({ wishlist: items });
+      
+    } catch (error) {
+      // 🛡️ SILENT FAIL IF TABLE MISSING (Allows user to run SQL script without console spam)
+      if (error?.code === '42P01' || error?.message?.includes('schema cache')) {
+        console.log('🏔️ [Identity Vault] Wishlist sync pending (Table creation required in Supabase).');
+        return;
+      }
+      console.error('🛡️ [Identity Vault] Wishlist Sync Failed:', error.message || error);
+    } finally {
+      set({ isWishlistLoading: false });
+    }
+  },
+
+  toggleWishlist: async (product, userId = null) => {
     const current = get().wishlist;
     const exists = current.find(p => p.id === product.id);
+    
+    // 🛡️ LOCAL STATE UPDATE (Optimistic)
     if (exists) {
       set({ wishlist: current.filter(p => p.id !== product.id) });
     } else {
       set({ wishlist: [...current, product] });
     }
+
+    // 🏔️ REMOTE PERSISTENCE (If logged in)
+    if (userId) {
+      try {
+        // Try 'wishlist' table
+        const { error } = exists 
+          ? await supabase.from('wishlist').delete().eq('user_id', userId).eq('product_id', product.id)
+          : await supabase.from('wishlist').insert([{ user_id: userId, product_id: product.id }]);
+
+        // Fallback to 'wishlist_items' if primary table missing
+        if (error && error.code === '42P01') {
+          exists
+            ? await supabase.from('wishlist_items').delete().eq('user_id', userId).eq('product_id', product.id)
+            : await supabase.from('wishlist_items').insert([{ user_id: userId, product_id: product.id }]);
+        }
+      } catch (error) {
+        console.error('🛡️ [Identity Vault] Remote Wishlist Sync Error:', error);
+      }
+    }
   },
 
+  // 🔍 PREVIEW VAULT
+  selectedProduct: null,
+  setSelectedProduct: (product) => set({ selectedProduct: product }),
+
+  // 🎨 UI VAULT
+  isAccountOpen: false,
+  setIsAccountOpen: (isOpen) => set({ isAccountOpen: isOpen }),
+  isSidebarCollapsed: false,
+  setIsSidebarCollapsed: (isCollapsed) => set({ isSidebarCollapsed: isCollapsed }),
+
   // 🧹 CACHE PURGE
-  clearCache: () => set({ products: [], sellerProducts: [], wishlist: [], lastFetchUser: null, lastSellerId: null })
+  clearCache: () => set({ 
+    products: [], 
+    sellerProducts: [], 
+    wishlist: [], 
+    lastFetchUser: null, 
+    lastSellerId: null, 
+    selectedProduct: null, 
+    isAccountOpen: false,
+    isSidebarCollapsed: false
+  })
 }));
