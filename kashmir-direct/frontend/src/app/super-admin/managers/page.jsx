@@ -35,25 +35,32 @@ function StaffManagementContent() {
     }
   };
 
+  const handleRoleRecruitment = async (payload) => {
+    const toastId = toast.loading(`Recruiting ${payload.full_name}...`);
+    try {
+      const response = await fetch('/api/admin/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      
+      const result = await response.json();
+      if (result.error) throw new Error(result.error);
+
+      toast.success('Manager Successfully Recruited', { id: toastId });
+      fetchManagers(); 
+    } catch (err) {
+      console.error('Recruitment Error:', err);
+      toast.error(err.message || 'Recruitment Protocol Failure', { id: toastId });
+    }
+  };
+
   return (
     <div className="space-y-10 pb-20">
-       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-          <div className="page-header">
-             <div className="flex items-center gap-2 mb-2">
-                <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse shadow-[0_0_8px_#6366f1]" />
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#1B4332]/40">Operations Command Node</span>
-             </div>
-             <h1 className="text-4xl font-black text-[#1B4332] tracking-tighter leading-none">Staff <span className="text-[#BC6C25] font-serif italic font-normal lowercase">Management</span></h1>
-             <p className="text-[12px] font-medium text-[#1B4332]/40 italic mt-2">Overseeing {managers.length} regional operation managers.</p>
-          </div>
-          
-          <button onClick={fetchManagers} className="h-14 px-8 bg-[#1B4332]/5 border border-[#1B4332]/10 text-[#1B4332] rounded-2xl flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest hover:bg-[#1B4332] hover:text-white transition-all shadow-sm">
-             <RefreshCw size={16} className={loading ? 'animate-spin' : ''} /> Sync Ops Command
-          </button>
-       </div>
+
 
        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-          <OpsCommand managers={managers} />
+          <OpsCommand managers={managers} onAddManager={handleRoleRecruitment} />
        </motion.div>
     </div>
   );

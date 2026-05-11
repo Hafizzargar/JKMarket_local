@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
-import { Plus, Briefcase, Trash2, Edit2, CheckCircle2, XCircle, Users, MapPin, Clock, Zap, ChevronRight, Filter } from 'lucide-react';
+import { Plus, Briefcase, Trash2, Edit2, CheckCircle2, XCircle, Users, MapPin, Clock, Zap, ChevronRight, Filter, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function JobForge() {
@@ -65,7 +65,7 @@ export default function JobForge() {
       resetForm();
       fetchJobs();
     } catch (err) {
-      toast.error('Could not save job.');
+      toast.error(err.message || 'Could not save job.');
     }
   };
 
@@ -231,66 +231,74 @@ export default function JobForge() {
               initial={{ opacity: 0, scale: 0.95, y: 30 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 30 }}
-              className="relative bg-[#FDFBF7] border border-[#1B4332]/10 w-full max-w-3xl rounded-[3rem] p-10 md:p-16 shadow-[0_50px_100px_rgba(27,67,50,0.2)] overflow-y-auto max-h-[90vh] no-scrollbar group/modal"
+              className="relative bg-[#FDFBF7] border border-[#1B4332]/10 w-full max-w-2xl rounded-[2.5rem] p-8 md:p-10 shadow-[0_50px_100px_rgba(27,67,50,0.2)] overflow-hidden group/modal"
             >
                {/* 🎭 AMBIENT ACCENT */}
                <div className="absolute top-0 right-0 w-64 h-64 bg-[#BC6C25]/5 blur-[100px] pointer-events-none" />
 
-               <div className="flex items-center gap-4 mb-10">
-                  <div className="w-2 h-2 bg-[#BC6C25] rounded-full animate-pulse" />
-                  <h2 className="text-2xl sm:text-3xl font-black text-[#1B4332] tracking-tighter uppercase italic leading-none">
-                    {editingJob ? 'Edit Job Post' : 'Post New Job'}
-                  </h2>
-               </div>
+                <div className="flex items-center justify-between mb-8">
+                   <div className="flex items-center gap-3">
+                      <div className="w-1.5 h-1.5 bg-[#BC6C25] rounded-full animate-pulse" />
+                      <h2 className="text-xl sm:text-2xl font-black text-[#1B4332] tracking-tighter uppercase italic leading-none">
+                        {editingJob ? 'Edit Job' : 'New Job'}
+                      </h2>
+                   </div>
+                   <button 
+                     onClick={() => setIsModalOpen(false)}
+                     className="w-10 h-10 rounded-xl bg-[#1B4332]/5 text-[#1B4332]/20 hover:text-rose-500 transition-all flex items-center justify-center"
+                   >
+                      <X size={18} />
+                   </button>
+                </div>
                
-               <form onSubmit={handleSubmit} className="space-y-8 sm:space-y-10 relative z-10">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                     <div className="space-y-3">
-                        <label className="text-[9px] font-black uppercase tracking-[0.3em] text-[#BC6C25] ml-4">Job Title</label>
+               <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
+                  <div className="grid grid-cols-2 gap-6">
+                     <div className="space-y-2">
+                        <label className="text-[8px] font-black uppercase tracking-[0.3em] text-[#BC6C25] ml-2">Job Title</label>
                         <input 
                            required
                            type="text" 
                            value={formData.title}
                            onChange={(e) => setFormData({...formData, title: e.target.value})}
                            placeholder="e.g. Sales Manager"
-                           className="w-full bg-white border border-[#1B4332]/10 rounded-2xl px-8 py-5 text-[#1B4332] text-xs font-bold focus:border-[#BC6C25]/50 focus:outline-none transition-all shadow-sm"
+                           className="w-full bg-white border border-[#1B4332]/10 rounded-xl px-6 py-4 text-[#1B4332] text-[11px] font-bold focus:border-[#BC6C25]/50 focus:outline-none transition-all shadow-sm"
                         />
                      </div>
-                     <div className="space-y-3">
-                        <label className="text-[9px] font-black uppercase tracking-[0.3em] text-[#BC6C25] ml-4">Department</label>
+                     <div className="space-y-2">
+                        <label className="text-[8px] font-black uppercase tracking-[0.3em] text-[#BC6C25] ml-2">Department</label>
                         <input 
                            required
                            type="text" 
                            value={formData.department}
                            onChange={(e) => setFormData({...formData, department: e.target.value})}
                            placeholder="e.g. Management"
-                           className="w-full bg-white border border-[#1B4332]/10 rounded-2xl px-8 py-5 text-[#1B4332] text-xs font-bold focus:border-[#BC6C25]/50 focus:outline-none transition-all shadow-sm"
+                           className="w-full bg-white border border-[#1B4332]/10 rounded-xl px-6 py-4 text-[#1B4332] text-[11px] font-bold focus:border-[#BC6C25]/50 focus:outline-none transition-all shadow-sm"
                         />
                      </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                     <div className="space-y-3">
-                        <label className="text-[9px] font-black uppercase tracking-[0.3em] text-[#BC6C25] ml-4">Location</label>
+                  <div className="grid grid-cols-2 gap-6">
+                     <div className="space-y-2">
+                        <label className="text-[8px] font-black uppercase tracking-[0.3em] text-[#BC6C25] ml-2">Location</label>
                         <div className="relative">
-                           <MapPin size={14} className="absolute left-6 top-1/2 -translate-y-1/2 text-[#1B4332]/20" />
+                           <MapPin size={12} className="absolute left-5 top-1/2 -translate-y-1/2 text-[#1B4332]/20" />
                            <input 
                               required
                               type="text" 
                               value={formData.location}
                               onChange={(e) => setFormData({...formData, location: e.target.value})}
-                              className="w-full bg-white border border-[#1B4332]/10 rounded-2xl pl-14 pr-8 py-5 text-[#1B4332] text-xs font-bold focus:border-[#BC6C25]/50 focus:outline-none transition-all shadow-sm"
+                              className="w-full bg-white border border-[#1B4332]/10 rounded-xl pl-12 pr-6 py-4 text-[#1B4332] text-[11px] font-bold focus:border-[#BC6C25]/50 focus:outline-none transition-all shadow-sm"
                            />
                         </div>
                      </div>
-                     <div className="space-y-3">
-                        <label className="text-[9px] font-black uppercase tracking-[0.3em] text-[#BC6C25] ml-4">Job Type</label>
+                     <div className="space-y-2">
+                        <label className="text-[8px] font-black uppercase tracking-[0.3em] text-[#BC6C25] ml-2">Job Type</label>
                         <div className="relative">
-                           <Clock size={14} className="absolute left-6 top-1/2 -translate-y-1/2 text-[#1B4332]/20" />
+                           <Clock size={12} className="absolute left-5 top-1/2 -translate-y-1/2 text-[#1B4332]/20" />
                            <select 
                               value={formData.type}
                               onChange={(e) => setFormData({...formData, type: e.target.value})}
-                              className="w-full bg-white border border-[#1B4332]/10 rounded-2xl pl-14 pr-8 py-5 text-[#1B4332] text-xs font-bold focus:border-[#BC6C25]/50 focus:outline-none appearance-none cursor-pointer transition-all shadow-sm"
+                              className="w-full bg-white border border-[#1B4332]/10 rounded-xl pl-12 pr-6 py-4 text-[#1B4332] text-[11px] font-bold focus:border-[#BC6C25]/50 focus:outline-none appearance-none cursor-pointer transition-all shadow-sm"
                            >
                               <option value="Full-time">Full-time</option>
                               <option value="Part-time">Part-time</option>
@@ -301,27 +309,27 @@ export default function JobForge() {
                      </div>
                   </div>
 
-                  <div className="space-y-3">
-                     <label className="text-[9px] font-black uppercase tracking-[0.3em] text-[#BC6C25] ml-4">Description</label>
+                  <div className="space-y-2">
+                     <label className="text-[8px] font-black uppercase tracking-[0.3em] text-[#BC6C25] ml-2">Description</label>
                      <textarea 
                         required
                         value={formData.description}
                         onChange={(e) => setFormData({...formData, description: e.target.value})}
-                        rows={4}
-                        className="w-full bg-white border border-[#1B4332]/10 rounded-[2rem] px-8 py-6 text-[#1B4332] text-xs font-medium focus:border-[#BC6C25]/50 focus:outline-none transition-all shadow-sm min-h-[140px] leading-relaxed"
+                        rows={3}
+                        className="w-full bg-white border border-[#1B4332]/10 rounded-2xl px-6 py-4 text-[#1B4332] text-[11px] font-medium focus:border-[#BC6C25]/50 focus:outline-none transition-all shadow-sm min-h-[100px] leading-relaxed no-scrollbar"
                         placeholder="Detail the job responsibilities..."
                      />
                   </div>
 
-                  <div className="flex flex-col sm:flex-row gap-4 pt-8">
-                     <button type="submit" className="flex-[2] bg-[#BC6C25] hover:bg-[#E87C2A] text-white py-6 rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] shadow-2xl shadow-[#BC6C25]/20 transition-all flex items-center justify-center gap-4">
-                        <Zap size={18} className="fill-white" />
-                        {editingJob ? 'Update Job' : 'Post New Job'}
+                  <div className="flex gap-4 pt-4">
+                     <button type="submit" className="flex-[2] h-14 bg-[#BC6C25] hover:bg-[#E87C2A] text-white rounded-xl text-[10px] font-black uppercase tracking-[0.3em] shadow-xl shadow-[#BC6C25]/20 transition-all flex items-center justify-center gap-3">
+                        <Zap size={16} className="fill-white" />
+                        {editingJob ? 'Update Position' : 'Forge Position'}
                      </button>
                      <button 
                        type="button" 
                        onClick={() => setIsModalOpen(false)} 
-                       className="flex-1 bg-[#1B4332]/5 text-[#1B4332]/30 py-6 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-[#1B4332]/10 hover:text-[#1B4332] transition-all border border-[#1B4332]/5"
+                       className="flex-1 h-14 bg-[#1B4332]/5 text-[#1B4332]/30 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#1B4332]/10 transition-all"
                      >
                         Cancel
                      </button>

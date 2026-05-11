@@ -51,3 +51,37 @@ export async function GET(request) {
     return NextResponse.json({ error: 'Registry Stream Failed' }, { status: 500 });
   }
 }
+export async function POST(request) {
+  try {
+    const payload = await request.json();
+    const { full_name, email, password, role } = payload;
+
+    // 1. 🛡️ RECRUIT USER IN AUTH REGISTRY
+    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: { full_name, role }
+    });
+
+    if (authError) throw authError;
+
+    // 2. 🏛️ FINALIZE IDENTITY IN PROFILES
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({ full_name, role })
+      .eq('id', authData.user.id);
+
+    if (profileError) {
+      // Cleanup auth if profile update fails (Optional but safer)
+      await supabase.auth.admin.deleteUser(authData.user.id);
+      throw profileError;
+    }
+
+    return NextResponse.json({ success: true, user: authData.user });
+
+  } catch (error) {
+    console.error('🛡️ [Manager Recruitment Failure]:', error);
+    return NextResponse.json({ error: error.message || 'Recruitment Failed' }, { status: 500 });
+  }
+}

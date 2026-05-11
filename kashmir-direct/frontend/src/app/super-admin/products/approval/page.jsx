@@ -67,9 +67,12 @@ function SovereignAuditContent() {
         if (payload.category) updateData.category = payload.category;
         if (payload.description) updateData.description = payload.description;
         if (payload.price) updateData.price = Number(payload.price);
-        if (payload.weight) updateData.weight = Number(payload.weight);
-        if (payload.unit) updateData.unit = payload.unit;
-        if (payload.rating) updateData.rating = payload.rating;
+        if (payload.weight) {
+          updateData.weight_value = Number(payload.weight);
+        }
+        if (payload.unit) {
+          updateData.weight_unit = payload.unit;
+        }
         if (payload.images) updateData.images = payload.images;
       }
 
@@ -81,8 +84,11 @@ function SovereignAuditContent() {
       if (error) throw error;
 
       toast.success(`Product ${isApprove ? 'Certified' : 'Returned'} Successfully`, { id: toastId });
+      
+      // 🚀 OPTIMISTIC UI UPDATE (Instant Removal)
+      setProducts(prev => prev.filter(p => p.id !== inspectModal.item.id));
+
       setInspectModal({ isOpen: false, item: null, isRejecting: false, reason: '' });
-      fetchPendingProducts();
     } catch (err) {
       console.error('Governance Error:', err);
       toast.error('Governance Protocol Failure', { id: toastId });
@@ -96,17 +102,17 @@ function SovereignAuditContent() {
 
   return (
     <div className="space-y-8">
-      {/* 🏛️ AUDIT HEADER */}
+      {/* 🏛️ APPROVAL HEADER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
          <div>
             <div className="flex items-center gap-3 mb-2">
-               <h1 className="text-3xl font-black tracking-tighter uppercase text-[#1B4332]">Sovereign Audit Room</h1>
+               <h1 className="text-3xl font-black tracking-tighter uppercase text-[#1B4332]">Check New Products</h1>
                <div className="px-3 py-1 bg-[#BC6C25]/10 border border-[#BC6C25]/20 rounded-lg flex items-center gap-2">
                   <Clock size={12} className="text-[#BC6C25]" />
                   <span className="text-[10px] font-black text-[#BC6C25] uppercase tracking-widest">{products.length} Pending</span>
                </div>
             </div>
-            <p className="text-sm font-medium text-[#1B4332]/40 italic">Dedicated high-focus workspace for Super Admin curation.</p>
+            <p className="text-sm font-medium text-[#1B4332]/40 italic">Review and approve new products added by sellers.</p>
          </div>
 
          <div className="flex items-center gap-4">
@@ -114,7 +120,7 @@ function SovereignAuditContent() {
                <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#1B4332]/20 group-focus-within:text-[#BC6C25] transition-colors" />
                <input 
                  type="text" 
-                 placeholder="Search submissions..."
+                 placeholder="Search products..."
                  value={searchQuery}
                  onChange={(e) => setSearchQuery(e.target.value)}
                  className="bg-white border border-[#1B4332]/5 rounded-2xl pl-10 pr-6 py-3 text-xs font-bold w-64 focus:border-[#BC6C25]/40 focus:outline-none transition-all shadow-sm"
@@ -126,23 +132,23 @@ function SovereignAuditContent() {
          </div>
       </div>
 
-      {/* 📜 SUBMISSION VAULT TABLE */}
+      {/* 📜 PRODUCT LIST TABLE */}
       <div className="bg-white rounded-[2.5rem] border border-[#1B4332]/5 shadow-xl overflow-hidden min-h-[400px]">
          {loading ? (
            <div className="flex flex-col items-center justify-center h-[400px] gap-4">
               <Loader2 className="animate-spin text-[#BC6C25]" size={32} />
-              <p className="text-[10px] font-black text-[#1B4332]/20 uppercase tracking-[0.4em]">Syncing Audit Vault...</p>
+              <p className="text-[10px] font-black text-[#1B4332]/20 uppercase tracking-[0.4em]">Loading Products...</p>
            </div>
          ) : filtered.length > 0 ? (
            <div className="overflow-x-auto no-scrollbar">
               <table className="w-full border-collapse">
                  <thead>
                     <tr className="bg-[#FDFBF7] border-b border-[#1B4332]/5">
-                       <th className="px-8 py-5 text-left text-[9px] font-black text-[#1B4332]/30 uppercase tracking-[0.2em]">Product Identity</th>
-                       <th className="px-8 py-5 text-left text-[9px] font-black text-[#1B4332]/30 uppercase tracking-[0.2em]">Measure</th>
-                       <th className="px-8 py-5 text-left text-[9px] font-black text-[#1B4332]/30 uppercase tracking-[0.2em]">Valuation</th>
-                       <th className="px-8 py-5 text-left text-[9px] font-black text-[#1B4332]/30 uppercase tracking-[0.2em]">Artisan Source</th>
-                       <th className="px-8 py-5 text-right text-[9px] font-black text-[#1B4332]/30 uppercase tracking-[0.2em]">Governance</th>
+                       <th className="px-8 py-5 text-left text-[9px] font-black text-[#1B4332]/30 uppercase tracking-[0.2em]">Product Info</th>
+                       <th className="px-8 py-5 text-left text-[9px] font-black text-[#1B4332]/30 uppercase tracking-[0.2em]">Weight</th>
+                       <th className="px-8 py-5 text-left text-[9px] font-black text-[#1B4332]/30 uppercase tracking-[0.2em]">Price</th>
+                       <th className="px-8 py-5 text-left text-[9px] font-black text-[#1B4332]/30 uppercase tracking-[0.2em]">Shop Name</th>
+                       <th className="px-8 py-5 text-right text-[9px] font-black text-[#1B4332]/30 uppercase tracking-[0.2em]">Action</th>
                     </tr>
                  </thead>
                  <tbody>
@@ -156,16 +162,16 @@ function SovereignAuditContent() {
                          <td className="px-8 py-6">
                             <div className="flex items-center gap-4">
                                <div className="w-14 h-14 rounded-xl overflow-hidden border border-[#1B4332]/5 shadow-sm group-hover:scale-105 transition-transform duration-500">
-                                  <img src={p.images?.[0]} className="w-full h-full object-cover" alt="Audit" />
+                                  <img src={p.images?.[0]} className="w-full h-full object-cover" alt="Product" />
                                </div>
                                <div>
                                   <p className="text-[8px] font-black text-[#BC6C25] uppercase tracking-widest mb-1">{p.category}</p>
                                   <p className="text-[13px] font-black text-[#1B4332] uppercase tracking-tighter">{p.title}</p>
-                               </div>
+                                </div>
                             </div>
                          </td>
                          <td className="px-8 py-6">
-                            <p className="text-sm font-black text-[#1B4332] uppercase">{p.weight}{p.unit || 'g'}</p>
+                            <p className="text-sm font-black text-[#1B4332] uppercase">{p.weight_value || p.weight}{p.weight_unit || p.unit || 'g'}</p>
                             <p className="text-[9px] font-bold text-[#1B4332]/20 uppercase tracking-widest mt-1">Weight</p>
                          </td>
                          <td className="px-8 py-6">
@@ -181,7 +187,7 @@ function SovereignAuditContent() {
                               onClick={() => setInspectModal({ isOpen: true, item: p, isRejecting: false, reason: '' })}
                               className="px-6 py-2.5 bg-[#1B4332] text-white text-[9px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-[#1B4332]/10 hover:bg-[#BC6C25] hover:-translate-y-0.5 active:translate-y-0 transition-all"
                             >
-                               Start Audit
+                               Check Product
                             </button>
                          </td>
                       </motion.tr>
@@ -196,7 +202,7 @@ function SovereignAuditContent() {
               </div>
               <div>
                  <h3 className="text-xl font-black text-[#1B4332] uppercase tracking-tighter">Vault is Empty</h3>
-                 <p className="text-[10px] font-bold text-[#1B4332]/20 uppercase tracking-[0.3em] mt-2">All submissions have been certified.</p>
+                 <p className="text-[10px] font-bold text-[#1B4332]/20 uppercase tracking-[0.3em] mt-2">All submissions have been approved.</p>
               </div>
            </div>
          )}

@@ -39,13 +39,17 @@ function ProductsRegistryContent() {
   };
 
   const handleInspect = (p) => {
-    setInspectModal({ isOpen: true, item: p, isRejecting: false, reason: '' });
+    if (p.status === 'pending') {
+      window.location.href = `/super-admin/products/approval?inspect=${p.id}`;
+    } else {
+      setInspectModal({ isOpen: true, item: p, isRejecting: false, reason: '' });
+    }
   };
 
-  const handleGovernance = async (status, payload = {}) => {
+  const handleApproval = async (status, payload = {}) => {
     const { item, reason } = inspectModal;
     const isApprove = status === 'approved';
-    const toastId = toast.loading(`${isApprove ? 'Certifying' : 'Returning'} listing...`);
+    const toastId = toast.loading(`${isApprove ? 'Approving' : 'Rejecting'} product...`);
     
     try {
       const updateData = { 
@@ -59,20 +63,28 @@ function ProductsRegistryContent() {
         if (payload.category) updateData.category = payload.category;
         if (payload.description) updateData.description = payload.description;
         if (payload.price) updateData.price = Number(payload.price);
-        if (payload.weight) updateData.weight = Number(payload.weight);
-        if (payload.unit) updateData.unit = payload.unit;
-        if (payload.rating) updateData.rating = payload.rating;
+        if (payload.weight) {
+          updateData.weight_value = Number(payload.weight);
+        }
+        if (payload.unit) {
+          updateData.weight_unit = payload.unit;
+        }
         if (payload.images) updateData.images = payload.images;
       }
 
       const { error } = await supabase.from('products').update(updateData).eq('id', item.id);
       
       if (error) throw error;
-      toast.success(isApprove ? 'Listing Published' : 'Rejection Logged', { id: toastId });
-      fetchProducts();
+      toast.success(isApprove ? 'Product Approved' : 'Product Rejected', { id: toastId });
+      
+      // 🚀 OPTIMISTIC UI UPDATE
+      setProducts(prev => prev.map(p => 
+        p.id === item.id ? { ...p, ...updateData } : p
+      ));
+
       setInspectModal({ ...inspectModal, isOpen: false });
     } catch (err) {
-      toast.error('Governance Sync Error', { id: toastId });
+      toast.error('Sync Error', { id: toastId });
     }
   };
 
@@ -91,7 +103,7 @@ function ProductsRegistryContent() {
             <GovernanceInspector 
               {...inspectModal} 
               setModal={(update) => setInspectModal(prev => ({ ...prev, ...update }))} 
-              onAction={handleGovernance} 
+              onAction={handleApproval} 
             />
           )}
        </AnimatePresence>

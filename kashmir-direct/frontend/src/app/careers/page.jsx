@@ -6,11 +6,19 @@ import { supabase } from '../../lib/supabase';
 import { Briefcase, MapPin, Clock, ArrowRight, Search, Filter } from 'lucide-react';
 import Link from 'next/link';
 import Button from '../../components/ui/Button';
+import ApplicationModal from '../../components/ApplicationModal';
 
 export default function CareersPage() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('All');
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const openApplication = (job) => {
+    setSelectedJob(job);
+    setIsModalOpen(true);
+  };
 
   useEffect(() => {
     fetchJobs();
@@ -143,7 +151,11 @@ export default function CareersPage() {
                       <span className="flex items-center gap-1"><MapPin size={12} /> {job.location}</span>
                     </div>
                   </div>
-                  <Button size="sm" className="w-full sm:w-auto px-10 h-12 flex items-center gap-2">
+                  <Button 
+                    onClick={() => openApplication(job)}
+                    size="sm" 
+                    className="w-full sm:w-auto px-10 h-12 flex items-center gap-2"
+                  >
                     Apply Node <ArrowRight size={14} />
                   </Button>
                 </div>
@@ -158,6 +170,12 @@ export default function CareersPage() {
           </motion.div>
         )}
       </section>
+
+      <ApplicationModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        job={selectedJob} 
+      />
 
       {/* 🌟 CULTURE SECTION */}
       <section className="py-32 px-6 bg-[#1B4332] rounded-[4rem] sm:rounded-[6rem] mx-4 my-20">

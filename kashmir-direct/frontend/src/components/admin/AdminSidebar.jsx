@@ -24,12 +24,11 @@ export default function AdminSidebar({ activeTab, setActiveTab, stats, signOut, 
   }, []);
 
   const navItems = [
-    { id: 'overview', label: 'Dashboard', icon: LayoutDashboard, path: '/super-admin/dashboard' },
-    { id: 'products', label: 'Inventory', icon: Package, count: stats?.pending, path: '/super-admin/products' },
-    { id: 'managers', label: 'Staff', icon: Briefcase, path: '/super-admin/staff' },
-    { id: 'careers', label: 'Careers', icon: Users, path: '/super-admin/careers' },
-    { id: 'artisans', label: 'Shops', icon: Store, path: '/super-admin/artisans' },
-    { id: 'users', label: 'Users', icon: Globe, path: '/super-admin/users' },
+    { id: 'admin', icon: LayoutDashboard, label: 'Admin Panel', path: '/super-admin' },
+    { id: 'products', icon: ShoppingBag, label: 'All Products', path: '/super-admin/products' },
+    { id: 'approval', icon: ShieldCheck, label: 'Check Products', path: '/super-admin/products/approval', count: stats?.pending || 0 },
+    { id: 'managers', icon: Users, label: 'Staff Managers', path: '/super-admin/managers' },
+    { id: 'careers', icon: Briefcase, label: 'Careers', path: '/super-admin/careers' },
     { id: 'settings', label: 'Settings', icon: Settings, path: '/super-admin/settings' }
   ];
 

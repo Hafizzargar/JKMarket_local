@@ -50,7 +50,7 @@ export default function SuperAdminLayout({ children }) {
       products: '/super-admin/products',
       artisans: '/super-admin/artisans',
       users: '/super-admin/users',
-      staff: '/super-admin/staff',
+      managers: '/super-admin/managers',
       careers: '/super-admin/careers',
       settings: '/super-admin/settings'
     };
@@ -135,7 +135,7 @@ export default function SuperAdminLayout({ children }) {
              </div>
           </header>
 
-          <div className="flex-1 overflow-hidden p-8 lg:p-12 relative">
+          <div className="flex-1 overflow-hidden p-4 lg:p-6 relative">
              {/* ✨ AMBIENT GLOWS THAT SCROLL WITH CONTENT */}
              <div className="absolute top-0 right-0 w-[30%] h-[30%] bg-[#BC6C25]/5 blur-[120px] pointer-events-none" />
              <div className="absolute bottom-0 left-0 w-[30%] h-[30%] bg-[#1B4332]/5 blur-[120px] pointer-events-none" />
