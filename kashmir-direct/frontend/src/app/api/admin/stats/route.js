@@ -11,6 +11,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
  * Purpose: Provides real-time global metrics for the administrative command center.
  */
 export async function GET(request) {
+  console.log('📡 [Admin Stats API]: GET Request Received');
   try {
     // 1. Parallel Metrics Aggregation
     const [products, sellers, profiles, orders] = await Promise.all([

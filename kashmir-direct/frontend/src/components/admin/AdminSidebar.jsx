@@ -9,7 +9,7 @@ export default function AdminSidebar({ activeTab, setActiveTab, stats, signOut, 
   const pathname = usePathname();
   const [isMobile, setIsMobile] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [expandedItems, setExpandedItems] = useState(['vault']);
+  const [expandedItems, setExpandedItems] = useState([]);
 
   const toggleExpand = (id) => {
     setExpandedItems(prev => 

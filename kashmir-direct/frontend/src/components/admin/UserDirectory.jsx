@@ -1,69 +1,78 @@
 'use client';
 
 import { User, Shield, Briefcase, HardHat, Store, ChevronRight, Fingerprint } from 'lucide-react';
+import { ForgeTable, ForgeBadge } from './shared/ForgeComponents';
 
 export default function UserDirectory({ users }) {
   const getRoleIcon = (role) => {
     switch(role) {
-      case 'manager': return <Briefcase size={16} />;
-      case 'labour': return <HardHat size={16} />;
-      case 'seller': return <Store size={16} />;
-      case 'superadmin': return <Shield size={16} />;
-      default: return <User size={16} />;
+      case 'manager':    return Briefcase;
+      case 'labour':     return HardHat;
+      case 'seller':     return Store;
+      case 'superadmin': return Shield;
+      default:           return User;
     }
   };
 
-  return (
-    <div className="bg-[#141A18]/60 backdrop-blur-3xl border border-white/5 rounded-[3.5rem] overflow-hidden shadow-2xl relative group">
-      {/* 🎭 AMBIENT DEPTH */}
-      <div className="absolute bottom-0 left-0 w-[40%] h-[40%] bg-[#BC6C25]/5 blur-[120px] pointer-events-none" />
+  const getRoleVariant = (role) => {
+    switch(role) {
+      case 'superadmin': return 'warning';
+      case 'manager':    return 'indigo';
+      case 'seller':     return 'success';
+      default:           return 'neutral';
+    }
+  };
 
-      <div className="overflow-x-auto relative z-10">
-        <table className="w-full text-left">
-           <thead>
-              <tr className="bg-white/[0.01]">
-                 <th className="px-12 py-8 text-[9px] font-black uppercase tracking-widest text-white/10">Identity Node</th>
-                 <th className="px-12 py-8 text-[9px] font-black uppercase tracking-widest text-white/10">Access Clearance</th>
-                 <th className="px-12 py-8 text-[9px] font-black uppercase tracking-widest text-white/10 text-right">Activity Status</th>
-              </tr>
-           </thead>
-           <tbody className="divide-y divide-white/[0.03]">
-              {users.map((u, idx) => (
-                <tr key={u.id || `u-${idx}`} className="hover:bg-white/[0.03] transition-all group/row">
-                   <td className="px-12 py-10">
-                      <div className="flex items-center gap-6">
-                         <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center text-white/40 group-hover/row:bg-[#BC6C25]/10 group-hover/row:text-[#BC6C25] transition-all border border-white/5 shadow-lg">
-                            <User size={20} />
-                         </div>
-                         <div className="space-y-1">
-                            <p className="text-[14px] font-black tracking-tight text-white/90 group-hover/row:text-white transition-colors">{u.full_name || 'Anonymous Phantom'}</p>
-                            <p className="text-[9px] font-bold text-white/20 uppercase tracking-widest">{u.email}</p>
-                         </div>
-                      </div>
-                   </td>
-                   <td className="px-12 py-10">
-                      <div className="flex items-center gap-4">
-                         <div className={`p-2.5 rounded-xl border ${u.role === 'superadmin' ? 'bg-[#BC6C25]/10 border-[#BC6C25]/30 text-[#BC6C25]' : 'bg-white/5 border-white/5 text-white/40'} shadow-md`}>
-                            {getRoleIcon(u.role)}
-                         </div>
-                         <div className="flex flex-col">
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60">{u.role}</span>
-                            <span className="text-[8px] font-bold text-white/10 uppercase tracking-widest italic mt-1">Permission Level: {u.role === 'superadmin' ? '∞' : '01'}</span>
-                         </div>
-                      </div>
-                   </td>
-                   <td className="px-12 py-10 text-right">
-                      <div className="inline-flex items-center gap-3 px-4 py-2 bg-white/[0.02] rounded-xl border border-white/5">
-                         <div className="w-1 h-1 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_5px_#10b981]" />
-                         <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/20">Encrypted Active</span>
-                         <ChevronRight size={12} className="text-white/5 group-hover/row:translate-x-1 transition-transform" />
-                      </div>
-                   </td>
-                </tr>
-              ))}
-           </tbody>
-        </table>
-      </div>
-    </div>
+  const columns = [
+    { label: 'Identity Node', width: '40%' },
+    { label: 'Access Clearance', width: '35%' },
+    { label: 'Status', width: '25%', align: 'right' }
+  ];
+
+  const renderRow = (u, idx) => (
+    <>
+      <td className="px-8 py-6">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 bg-[#1B4332]/5 rounded-xl flex items-center justify-center text-[#1B4332]/40 group-hover:bg-[#BC6C25]/10 group-hover:text-[#BC6C25] transition-all border border-[#1B4332]/5 shrink-0">
+            <User size={18} />
+          </div>
+          <div className="space-y-0.5 min-w-0">
+            <p className="text-[13px] font-black tracking-tight text-[#1B4332] truncate">{u.full_name || 'Anonymous'}</p>
+            <p className="text-[9px] font-bold text-[#1B4332]/30 uppercase tracking-widest truncate">{u.email}</p>
+          </div>
+        </div>
+      </td>
+
+      <td className="px-8 py-6">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-[#1B4332]/5 rounded-lg flex items-center justify-center text-[#1B4332]/40 border border-[#1B4332]/5 shrink-0">
+            {(() => { const Icon = getRoleIcon(u.role); return <Icon size={14} />; })()}
+          </div>
+          <div className="flex flex-col min-w-0">
+            <ForgeBadge label={u.role || 'user'} variant={getRoleVariant(u.role)} />
+            <span className="text-[7px] font-bold text-[#1B4332]/20 uppercase tracking-widest italic mt-1">
+              Level: {u.role === 'superadmin' ? '∞' : '01'}
+            </span>
+          </div>
+        </div>
+      </td>
+
+      <td className="px-8 py-6 text-right">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-500/5 rounded-full border border-emerald-500/10">
+          <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_5px_#10b981]" />
+          <span className="text-[8px] font-black uppercase tracking-widest text-emerald-600">Active</span>
+        </div>
+      </td>
+    </>
+  );
+
+  return (
+    <ForgeTable
+      columns={columns}
+      data={users}
+      renderRow={renderRow}
+      emptyMessage="No users found"
+      icon={Fingerprint}
+    />
   );
 }

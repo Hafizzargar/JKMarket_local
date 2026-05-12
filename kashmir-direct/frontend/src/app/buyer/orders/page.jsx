@@ -1,31 +1,58 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, Package, Clock, CheckCircle2, Truck, 
   AlertCircle, ArrowLeft, Calendar, ShoppingBag,
-  Sparkles, ExternalLink, ChevronRight
+  Sparkles, ExternalLink, ChevronRight, Loader2
 } from 'lucide-react';
 import Link from 'next/link';
-
-// 📦 MOCK BUYER ORDERS
-const MOCK_ORDERS = [
-  { id: 'ORD-8821', date: 'May 10, 2024', amount: '₹12,450', status: 'Processing', items: 3, items_list: 'Pashmina Shawl, Saffron (1g), Walnut (1kg)' },
-  { id: 'ORD-8820', date: 'May 09, 2024', amount: '₹8,900', status: 'Shipped', items: 1, items_list: 'Hand-woven Silk Scarf' },
-  { id: 'ORD-8819', date: 'May 08, 2024', amount: '₹24,000', status: 'Delivered', items: 2, items_list: 'Heritage Copper Samovar, Honey (5kg)' },
-];
+import { supabase } from '../../../lib/supabase';
+import { useAuth } from '../../../context/AuthContext';
 
 const STATUS_THEMES = {
-  'Processing': { bg: 'bg-amber-500/10', text: 'text-amber-600', dot: 'bg-amber-500', icon: Clock },
-  'Shipped': { bg: 'bg-blue-500/10', text: 'text-blue-600', dot: 'bg-blue-500', icon: Truck },
-  'Delivered': { bg: 'bg-emerald-500/10', text: 'text-emerald-600', dot: 'bg-emerald-500', icon: CheckCircle2 },
-  'Pending': { bg: 'bg-slate-500/10', text: 'text-slate-600', dot: 'bg-slate-500', icon: Clock },
-  'Cancelled': { bg: 'bg-rose-500/10', text: 'text-rose-600', dot: 'bg-rose-500', icon: AlertCircle },
+  'processing': { bg: 'bg-amber-500/10', text: 'text-amber-600', dot: 'bg-amber-500', icon: Clock },
+  'shipped': { bg: 'bg-blue-500/10', text: 'text-blue-600', dot: 'bg-blue-500', icon: Truck },
+  'delivered': { bg: 'bg-emerald-500/10', text: 'text-emerald-600', dot: 'bg-emerald-500', icon: CheckCircle2 },
+  'pending': { bg: 'bg-slate-500/10', text: 'text-slate-600', dot: 'bg-slate-500', icon: Clock },
+  'cancelled': { bg: 'bg-rose-500/10', text: 'text-rose-600', dot: 'bg-rose-500', icon: AlertCircle },
+  'approved': { bg: 'bg-[#1B4332]/10', text: 'text-[#1B4332]', dot: 'bg-[#1B4332]', icon: Sparkles },
 };
 
 export default function BuyerOrdersPage() {
+  const { user } = useAuth();
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    if (user) {
+      fetchOrders();
+    }
+  }, [user]);
+
+  const fetchOrders = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setOrders(data || []);
+    } catch (err) {
+      console.error('Error fetching orders:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredOrders = orders.filter(order => 
+    order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    order.items?.some(item => item.title.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] pt-4 sm:pt-6 pb-20">
@@ -64,7 +91,7 @@ export default function BuyerOrdersPage() {
                     </button>
                  </Link>
 
-                 {/* 🔍 SEARCH MOVED UP */}
+                 {/* 🔍 SEARCH */}
                  <div className="w-full md:w-[320px]">
                     <div className="relative group">
                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#1B4332]/10 group-focus-within:text-[#BC6C25] transition-all" size={16} />
@@ -84,10 +111,17 @@ export default function BuyerOrdersPage() {
         {/* 📜 ORDERS LIST */}
         <div className="space-y-6">
           <AnimatePresence mode="popLayout">
-            {MOCK_ORDERS.length > 0 ? (
-              MOCK_ORDERS.map((order, i) => {
-                const theme = STATUS_THEMES[order.status] || STATUS_THEMES['Pending'];
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-32 space-y-4">
+                <Loader2 className="animate-spin text-[#BC6C25]" size={32} />
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#1B4332]/40">Accessing Registry...</p>
+              </div>
+            ) : filteredOrders.length > 0 ? (
+              filteredOrders.map((order, i) => {
+                const theme = STATUS_THEMES[order.status.toLowerCase()] || STATUS_THEMES['pending'];
                 const StatusIcon = theme.icon;
+                const itemsCount = order.items?.reduce((acc, item) => acc + item.quantity, 0) || 0;
+                const itemsList = order.items?.map(item => item.title).join(', ') || 'Processing Details';
                 
                 return (
                   <motion.div
@@ -99,23 +133,25 @@ export default function BuyerOrdersPage() {
                   >
                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
                        {/* Order Info */}
-                       <div className="flex items-start gap-6">
+                       <div className="flex items-start gap-6 min-w-0">
                           <div className="w-14 h-14 rounded-2xl bg-[#1B4332]/5 flex items-center justify-center text-[#1B4332] shrink-0">
                              <ShoppingBag size={24} />
                           </div>
-                          <div className="space-y-1">
-                             <div className="flex items-center gap-3">
-                                <span className="text-sm font-black text-[#1B4332] tracking-tighter uppercase">{order.id}</span>
+                          <div className="space-y-1 min-w-0 flex-grow">
+                             <div className="flex items-center gap-3 flex-wrap">
+                                <span className="text-sm font-black text-[#1B4332] tracking-tighter uppercase truncate max-w-[150px]">
+                                  #{order.id.slice(-8).toUpperCase()}
+                                </span>
                                 <div className={`px-3 py-1 rounded-full ${theme.bg} ${theme.text} flex items-center gap-1.5`}>
                                    <div className={`w-1 h-1 rounded-full ${theme.dot} animate-pulse`} />
                                    <span className="text-[8px] font-black uppercase tracking-widest">{order.status}</span>
                                 </div>
                              </div>
                              <p className="text-[11px] font-bold text-[#1B4332]/40 uppercase tracking-widest flex items-center gap-2">
-                                <Calendar size={12} /> {order.date}
+                                <Calendar size={12} /> {new Date(order.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                              </p>
-                             <p className="text-xs font-medium text-[#1B4332]/60 mt-2 italic">
-                                {order.items_list}
+                             <p className="text-xs font-medium text-[#1B4332]/60 mt-2 italic truncate">
+                                {itemsList}
                              </p>
                           </div>
                        </div>
@@ -124,13 +160,28 @@ export default function BuyerOrdersPage() {
                        <div className="flex items-center justify-between lg:justify-end gap-12 border-t lg:border-t-0 pt-6 lg:pt-0 border-[#1B4332]/5">
                           <div className="text-left lg:text-right">
                              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#1B4332]/20 mb-1">Total Amount</p>
-                             <p className="text-xl font-black text-[#1B4332]">{order.amount}</p>
-                             <p className="text-[9px] font-bold text-[#BC6C25] uppercase tracking-widest mt-1">{order.items} Items</p>
+                             <p className="text-xl font-black text-[#1B4332]">₹{order.total_amount}</p>
+                             <p className="text-[9px] font-bold text-[#BC6C25] uppercase tracking-widest mt-1">{itemsCount} Items</p>
                           </div>
-                          <button className="h-14 px-8 rounded-2xl bg-[#1B4332] text-white flex items-center gap-3 font-black text-[10px] uppercase tracking-widest hover:bg-[#BC6C25] transition-all shadow-xl shadow-[#1B4332]/10 group">
-                             Track Order
-                             <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
-                          </button>
+                          
+                           {order.status.toLowerCase() === 'cancelled' ? (
+                             <div className="flex flex-col items-end shrink-0 min-w-[120px]">
+                                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-rose-500/40 mb-1">Relinquished</span>
+                                <p className="text-[11px] font-black text-rose-500/80">
+                                   {order.cancelled_at ? new Date(order.cancelled_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Recently'}
+                                </p>
+                                <p className="text-[8px] font-bold text-rose-500/30 uppercase tracking-widest mt-0.5">
+                                   {order.cancelled_at ? new Date(order.cancelled_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : ''}
+                                </p>
+                             </div>
+                           ) : (
+                             <Link href={`/buyer/orders/${order.id}`}>
+                               <button className="h-14 px-8 rounded-2xl bg-[#1B4332] text-white flex items-center gap-3 font-black text-[10px] uppercase tracking-widest hover:bg-[#BC6C25] transition-all shadow-xl shadow-[#1B4332]/10 group whitespace-nowrap">
+                                  Track Order
+                                  <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                               </button>
+                             </Link>
+                           )}
                        </div>
                     </div>
                   </motion.div>

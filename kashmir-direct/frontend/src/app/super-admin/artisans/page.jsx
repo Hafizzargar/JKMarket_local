@@ -13,6 +13,8 @@ import PrivilegeManager from '@/components/admin/PrivilegeManager';
 import SuspensionManager from '@/components/admin/SuspensionManager';
 import { supabase } from '@/lib/supabase';
 
+import { ForgeTabBar } from '@/components/admin/shared/ForgeComponents';
+
 function IdentityRegistryContent() {
   const { isAdmin } = useAuth();
   const [artisans, setArtisans] = useState([]);
@@ -173,30 +175,7 @@ function IdentityRegistryContent() {
   return (
     <div className="space-y-10 pb-20">
        <div className="flex items-center justify-between gap-6">
-          <div className="flex items-center gap-2 p-1 bg-[#1B4332]/5 rounded-2xl w-fit border border-[#1B4332]/5">
-             {tabs.map((tab) => (
-               <button
-                 key={tab.id}
-                 onClick={() => setActiveTab(tab.id)}
-                 className={`relative px-6 py-2.5 rounded-xl transition-all flex items-center gap-2 group`}
-               >
-                  {activeTab === tab.id && (
-                    <motion.div 
-                      layoutId="active-identity-tab"
-                      className="absolute inset-0 bg-white shadow-md rounded-xl z-0"
-                      transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
-                    />
-                  )}
-                  <tab.icon 
-                    size={14} 
-                    className={`relative z-10 transition-colors ${activeTab === tab.id ? 'text-[#BC6C25]' : 'text-[#1B4332]/40 group-hover:text-[#1B4332]/60'}`} 
-                  />
-                  <span className={`relative z-10 text-[9px] font-black uppercase tracking-widest transition-colors ${activeTab === tab.id ? 'text-[#1B4332]' : 'text-[#1B4332]/40 group-hover:text-[#1B4332]/60'}`}>
-                     {tab.label}
-                  </span>
-               </button>
-             ))}
-          </div>
+          <ForgeTabBar tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
        </div>
 
        <AnimatePresence mode="wait">

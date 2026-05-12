@@ -223,10 +223,10 @@ export const ForgeBadge = ({ label, icon: Icon, variant = 'neutral' }) => {
     <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border ${activeVariant} transition-all`}>
       {Icon && <Icon size={10} className="shrink-0" />}
       <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${variant === 'success' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' :
-          variant === 'warning' ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' :
-            variant === 'danger' ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]' :
-              variant === 'indigo' ? 'bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]' :
-                'bg-[#1B4332]/40'
+        variant === 'warning' ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' :
+          variant === 'danger' ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]' :
+            variant === 'indigo' ? 'bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]' :
+              'bg-[#1B4332]/40'
         }`} />
       <span className="text-[8px] font-black uppercase tracking-[0.2em] whitespace-nowrap">{label}</span>
     </div>
@@ -237,14 +237,14 @@ export const ForgeBadge = ({ label, icon: Icon, variant = 'neutral' }) => {
  * 🚀 FORGE BUTTON
  * Standardized high-density action button with 55px height and elite kinetics.
  */
-export const ForgeButton = ({ 
-  children, 
-  icon: Icon, 
-  variant = 'primary', 
-  onClick, 
+export const ForgeButton = ({
+  children,
+  icon: Icon,
+  variant = 'primary',
+  onClick,
   className = '',
   loading = false,
-  ...props 
+  ...props
 }) => {
   const variants = {
     primary: 'bg-[#1B4332] text-white hover:bg-[#BC6C25] shadow-lg shadow-[#1B4332]/20',
@@ -257,7 +257,7 @@ export const ForgeButton = ({
   const activeVariant = variants[variant] || variants.primary;
 
   return (
-    <button 
+    <button
       onClick={onClick}
       className={`
         inline-flex items-center justify-center gap-3 h-[41px] px-6 rounded-[10px] 
@@ -283,14 +283,14 @@ export const ForgeButton = ({
  * ⚠️ FORGE ALERT
  * Compact confirmation modal for critical administrative decisions.
  */
-export const ForgeAlert = ({ 
-  isOpen, 
-  onClose, 
-  onConfirm, 
-  title = "Confirm Protocol", 
-  message, 
-  confirmLabel = "Confirm", 
-  variant = "danger" 
+export const ForgeAlert = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  title = "Confirm Protocol",
+  message,
+  confirmLabel = "Confirm",
+  variant = "danger"
 }) => {
   return (
     <ForgeModal
@@ -316,5 +316,40 @@ export const ForgeAlert = ({
         </p>
       </div>
     </ForgeModal>
+  );
+};
+
+/**
+ * 🎛️ FORGE TAB BAR
+ * Standardized animated tab switcher for filtering/views.
+ */
+export const ForgeTabBar = ({ tabs, activeTab, onTabChange }) => {
+  return (
+    <div className="flex items-center gap-2 p-1 bg-[#1B4332]/5 rounded-2xl w-fit border border-[#1B4332]/5">
+      {tabs.map((tab) => (
+        <button
+          key={tab.id}
+          onClick={() => onTabChange(tab.id)}
+          className={`relative px-6 py-2.5 rounded-xl transition-all flex items-center gap-2 group`}
+        >
+          {activeTab === tab.id && (
+            <motion.div 
+              layoutId="active-forge-tab"
+              className="absolute inset-0 bg-white shadow-md rounded-xl z-0"
+              transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+            />
+          )}
+          {tab.icon && (
+            <tab.icon 
+              size={14} 
+              className={`relative z-10 transition-colors ${activeTab === tab.id ? 'text-[#BC6C25]' : 'text-[#1B4332]/40 group-hover:text-[#1B4332]/60'}`} 
+            />
+          )}
+          <span className={`relative z-10 text-[9px] font-black uppercase tracking-widest transition-colors ${activeTab === tab.id ? 'text-[#1B4332]' : 'text-[#1B4332]/40 group-hover:text-[#1B4332]/60'}`}>
+            {tab.label}
+          </span>
+        </button>
+      ))}
+    </div>
   );
 };

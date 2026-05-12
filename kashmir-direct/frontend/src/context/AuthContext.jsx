@@ -16,7 +16,8 @@ export const AuthProvider = ({ children }) => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const fetchProfile = useCallback(async (uid, currentUser = null, force = false) => {
-    if (!force && profile && profile.id === uid) return;
+    const currentProfile = useStore.getState().profile;
+    if (!force && currentProfile && currentProfile.id === uid) return;
 
     console.log('🛡️ [Identity Vault] Loading Profile for:', uid);
     
@@ -68,7 +69,7 @@ export const AuthProvider = ({ children }) => {
         });
       }
     }
-  }, [profile, setProfile]);
+  }, [setProfile]);
 
   useEffect(() => {
     const getSession = async () => {

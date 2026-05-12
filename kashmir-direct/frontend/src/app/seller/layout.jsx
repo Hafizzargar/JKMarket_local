@@ -8,7 +8,7 @@ import {
   Package, LogOut, Home, ShieldOff, Zap, Layers, Activity,
   ChevronLeft, ChevronRight,
   Bell, Plus, User, ShieldCheck, X, Clock, Menu,
-  LayoutDashboard, ShoppingCart, BarChart3
+  LayoutDashboard, ShoppingCart, BarChart3, Truck
 } from 'lucide-react';
 import AuthGuard from '@/components/auth/AuthGuard';
 import SovereignLoading from '@/components/ui/SovereignLoading';
@@ -102,6 +102,8 @@ export default function SellerLayout({ children }) {
                             {[
                               { id: 'dashboard', label: 'Overview', icon: LayoutDashboard, path: '/seller/dashboard' },
                               { id: 'inventory', label: 'My Products', icon: Package, path: '/seller/inventory' },
+                              { id: 'inbound', label: 'Inbound Orders', icon: ShoppingCart, path: '/seller/inbound' },
+                              { id: 'orders', label: 'Shipments & History', icon: Truck, path: '/seller/orders' },
                             ].map((tab) => (
                               <button key={tab.id} onClick={() => navigate(tab.path)} className={`w-full flex items-center gap-4 rounded-2xl transition-all ${pathname === tab.path ? 'bg-[#BC6C25] text-white shadow-xl' : 'bg-transparent text-[#1B4332]/50 hover:bg-[#1B4332]/5'} ${isSidebarOpen ? 'px-4 py-3' : 'h-12 justify-center'}`}>
                                 <tab.icon size={20} className={pathname === tab.path ? 'text-white' : 'text-[#1B4332]/30'} />

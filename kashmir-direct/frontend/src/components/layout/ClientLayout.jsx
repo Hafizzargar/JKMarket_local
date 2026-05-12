@@ -31,7 +31,7 @@ function LayoutContent({ children }) {
   }, []);
 
   if (!isMounted) {
-    return <div className="min-h-screen bg-[#FDFBF7]" />;
+    return <div className="h-screen w-full bg-[#FDFBF7]" />;
   }
 
   // 🛡️ NAVIGATION SENTINEL: Define route categories
@@ -44,14 +44,12 @@ function LayoutContent({ children }) {
     '/buyer/products', 
     '/buyer/categories', 
     '/buyer/wishlist', 
-    '/buyer/orders', 
-    '/buyer/help',
-    '/buyer/product-details'
   ];
-  const isKnownBuyerRoute = validBuyerRoutes.some(route => pathname === route || pathname?.startsWith(route + '/'));
+  const isProductRoute = validBuyerRoutes.some(route => pathname === route || pathname?.startsWith(route + '/'));
+  const showFloatingCart = isProductRoute && isStable && !isAuthRoute;
 
   // 🏛️ NAVBAR VISIBILITY: Show navbar on home, products, and any 404/unknown public page
-  const showNavbar = isStable && !isAuthRoute && !authLoading && !isDashboard && !isKnownBuyerRoute;
+  const showNavbar = isStable && !isAuthRoute && !authLoading && !isDashboard && !isProductRoute;
 
   return (
     <>
@@ -100,46 +98,25 @@ function LayoutContent({ children }) {
         )}
       </AnimatePresence>
 
-      <div className="relative flex min-h-screen">
+      <div className="relative flex h-screen overflow-hidden bg-[#FDFBF7]">
         <CartSidebar />
 
-        {/* 👤 FLOATING IDENTITY & CART (Show only on Buyer Dashboard) */}
-        {!showNavbar && !isAuthRoute && isStable && pathname?.startsWith('/buyer') && (
-          <>
-            <div className="fixed top-6 right-24 sm:top-8 sm:right-28 z-[55] hidden md:flex items-center gap-3">
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="px-6 py-2.5 rounded-2xl bg-white/40 backdrop-blur-xl border border-white/20 shadow-xl flex items-center gap-3 group hover:bg-white/60 transition-all duration-500"
-              >
-                <div className="w-2 h-2 bg-[#BC6C25] rounded-full animate-pulse shadow-[0_0_10px_rgba(188,108,37,0.5)]" />
-                <div className="flex flex-col">
-                  <span className="text-[8px] font-black uppercase tracking-[0.2em] text-[#1B4332]/40 leading-none mb-1">
-                    {user ? 'Verified Member' : 'Welcome'}
-                  </span>
-                  <h2 className="text-[12px] font-black text-[#1B4332] tracking-tight whitespace-nowrap">
-                    {user ? `Hi, ${profile?.full_name?.split(' ')[0] || 'Member'}` : 'Explore Shop'}
-                  </h2>
-                </div>
-                <Sparkles size={14} className="text-[#BC6C25] ml-2 group-hover:rotate-12 transition-transform" />
-              </motion.div>
-            </div>
-
-            <button
-              onClick={() => setIsCartOpen(true)}
-              className="fixed top-6 right-6 sm:top-8 sm:right-8 z-[55] w-12 h-12 sm:w-14 sm:h-14 bg-white border border-[#1B4332]/10 rounded-2xl shadow-xl flex items-center justify-center text-[#1B4332] hover:bg-[#1B4332] hover:text-white transition-all duration-500 group pointer-events-auto"
-            >
-              <ShoppingBag size={20} className="sm:w-6 sm:h-6 group-hover:scale-110 transition-transform" />
-              {cartCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 bg-[#BC6C25] text-white text-[8px] sm:text-[10px] font-black w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center border-2 border-white shadow-lg animate-in zoom-in duration-300">
-                  {cartCount}
-                </span>
-              )}
-            </button>
-          </>
+        {/* 🛒 FLOATING CART (Show only on Buyer Product Pages) */}
+        {showFloatingCart && (
+          <button
+            onClick={() => setIsCartOpen(true)}
+            className="fixed top-6 right-6 sm:top-8 sm:right-8 z-[55] w-12 h-12 sm:w-14 sm:h-14 bg-white border border-[#1B4332]/10 rounded-2xl shadow-xl flex items-center justify-center text-[#1B4332] hover:bg-[#1B4332] hover:text-white transition-all duration-500 group pointer-events-auto"
+          >
+            <ShoppingBag size={20} className="sm:w-6 sm:h-6 group-hover:scale-110 transition-transform" />
+            {cartCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 bg-[#BC6C25] text-white text-[8px] sm:text-[10px] font-black w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center border-2 border-white shadow-lg animate-in zoom-in duration-300">
+                {cartCount}
+              </span>
+            )}
+          </button>
         )}
         
-        <main className="flex-grow">
+        <main className="flex-1 h-full overflow-y-auto">
           {children}
         </main>
       </div>

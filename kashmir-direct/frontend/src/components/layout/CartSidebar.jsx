@@ -5,8 +5,16 @@ import { X, Trash2, ShoppingBag, ArrowRight, Minus, Plus } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import Button from '../ui/Button';
 
+import { useRouter } from 'next/navigation';
+
 export default function CartSidebar() {
   const { cart, isOpen, setIsOpen, removeFromCart, updateQuantity, cartTotal, cartCount } = useCart();
+  const router = useRouter();
+
+  const handleCheckout = () => {
+    setIsOpen(false);
+    router.push('/buyer/checkout');
+  };
 
   return (
     <AnimatePresence>
@@ -18,7 +26,7 @@ export default function CartSidebar() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsOpen(false)}
-            className="fixed inset-0 bg-[#081C15]/40 backdrop-blur-sm z-[60]"
+            className="fixed inset-0 bg-[#081C15]/40 backdrop-blur-sm z-[100]"
           />
 
           {/* Sidebar */}
@@ -27,7 +35,7 @@ export default function CartSidebar() {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed top-0 right-0 bottom-0 w-full max-w-md bg-[#FDFBF7] shadow-2xl z-[70] flex flex-col border-l border-[#1B4332]/10"
+            className="fixed top-0 right-0 bottom-0 w-full max-w-md bg-[#FDFBF7] shadow-2xl z-[110] flex flex-col border-l border-[#1B4332]/10"
           >
             {/* Header */}
             <div className="p-8 border-b border-[#1B4332]/5 flex items-center justify-between">
@@ -113,7 +121,10 @@ export default function CartSidebar() {
                   <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[#1B4332]/30">Vault Subtotal</span>
                   <span className="text-2xl font-black text-[#1B4332] tracking-tighter">₹{cartTotal}</span>
                 </div>
-                <Button className="w-full h-14 rounded-2xl group text-xs">
+                <Button 
+                  onClick={handleCheckout}
+                  className="w-full h-14 rounded-2xl group text-xs"
+                >
                   Proceed to Checkout <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
                 <p className="text-[9px] font-bold text-center text-[#1B4332]/20 uppercase tracking-[0.2em]">

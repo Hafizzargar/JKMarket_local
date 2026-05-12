@@ -22,15 +22,8 @@ export default function AccountSidebar() {
   const { user, profile, signOut, isAdmin, isLoggingOut } = useAuth();
   const { setIsOpen: setIsCartOpen } = useCart();
   const { isAccountOpen, setIsAccountOpen, isSidebarCollapsed, setIsSidebarCollapsed } = useStore();
-  const [isMounted, setIsMounted] = useState(false);
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  const isBuyerRoute = pathname?.startsWith('/buyer');
-
-  if (!isMounted || !isBuyerRoute || isLoggingOut) return null;
+  if (isLoggingOut) return null;
 
   const handleLinkClick = () => {
     // 🛡️ CLOSE CART: Ensure the cart drawer is dismissed on navigation

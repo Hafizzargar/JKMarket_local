@@ -16,7 +16,7 @@ export default function BuyerLayout({ children }) {
       {!isAuthRoute && <AccountSidebar />}
       
       <div className={`flex-grow transition-all duration-500 ${!isAuthRoute ? (isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-[280px]') : ''}`}>
-        <main className="pt-8 sm:pt-12">
+        <main className="pt-2">
           {children}
         </main>
       </div>

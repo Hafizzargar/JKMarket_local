@@ -49,6 +49,18 @@ export default function SuperAdminLayout({ children }) {
   const fetchGlobalStats = async () => {
     try {
       const response = await fetch('/api/admin/stats');
+      if (!response.ok) {
+        const text = await response.text();
+        console.warn(`🛡️ [Admin Sync Warning]: Server returned ${response.status}. Body: ${text.substring(0, 100)}...`);
+        return;
+      }
+      
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        console.warn("🛡️ [Admin Sync Warning]: Non-JSON response received.");
+        return;
+      }
+
       const data = await response.json();
       if (!data.error) {
         setStats({
